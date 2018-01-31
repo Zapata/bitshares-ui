@@ -5,9 +5,9 @@
 $primary-text-color: darken(#3d3d3d, 10%);
 $secondary-text-color: lighten($primary-text-color, 22%);
 $inactive-text-color: lighten($primary-text-color, 25%);
-$light-text-color: #3d3d3d;
+$light-text-color: green;
 $dark-text-color: lighten($light-text-color, 12%);
-$link-text-color: #337ab7;
+$link-text-color: green;
 $error-text-color: #e3745b;
 
 $settings-select-bg: #e5e6e4;
@@ -20,7 +20,7 @@ $light-panel-bg-color: #fff;
 $super-light-panel-bg-color: darken($light-panel-bg-color, 1%);
 $settings-menu-hover-bg: darken($light-panel-bg-color, 10%);
 $settings-menu-active-bg: darken($light-panel-bg-color, 10%);
-$button-bg-color: #2196f3;
+$button-bg-color: rgb(17, 201, 140);
 $secondary-button-bg-color: #999999;
 $input-background: darken($bg-color, 8%);
 
