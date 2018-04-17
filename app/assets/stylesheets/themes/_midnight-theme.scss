@@ -4,7 +4,7 @@
 
 $light-text-color: #fff;
 $dark-text-color: #444;
-$primary-text-color: #e0e0e0;
+$primary-text-color: #fff;
 $secondary-text-color: darken($primary-text-color, 20%);
 $inactive-text-color: darken($primary-text-color, 40%);
 $link-text-color: #049cce;
@@ -14,7 +14,7 @@ $settings-select-bg: #1e1f25;
 $settings-select-color: #737373;
 $settings-api-node-border-color: #2a2b34;
 $main-content-margin-block-bg-color: #151619;
-$bg-color: #191a1f;
+$bg-color: #455c71;
 $panel-bg-color: #2c2e37;
 $light-panel-bg-color: #353742;
 $super-light-panel-bg-color: lighten($light-panel-bg-color, 8%);
@@ -44,9 +44,9 @@ $account-header: #1a242f;
 $account-cells: #27384b;
 $account-green: #7ed321;
 $account-primarytext: white;
-$account-dimmed: #606060;
+$account-dimmed: #b2d0e0;
 $account-border: #323131;
-$account-background: black;
+$account-background: #172c41;
 $account-tabs-background: inherit;
 
 $pulsate-green-start: $account-green;
