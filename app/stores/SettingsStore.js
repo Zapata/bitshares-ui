@@ -51,7 +51,7 @@ class SettingsStore {
             showSettles: false,
             showAssetPercent: false,
             walletLockTimeout: 60 * 10,
-            themes: "darkTheme",
+            themes: "midnightTheme",
             passwordLogin: true,
             browser_notifications: {
                 allow: true,
@@ -82,7 +82,7 @@ class SettingsStore {
             unit: [CORE_ASSET, "USD", "CNY", "BTC", "EUR", "GBP"],
             showSettles: [{translate: "yes"}, {translate: "no"}],
             showAssetPercent: [{translate: "yes"}, {translate: "no"}],
-            themes: ["darkTheme", "lightTheme", "midnightTheme"],
+            themes: ["midnightTheme"],
             passwordLogin: [
                 {translate: "cloud_login"},
                 {translate: "local_wallet"}
