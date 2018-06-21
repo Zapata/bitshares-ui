@@ -1,8 +1,103 @@
 ---------------------------------------------------------------------
+Release 2.0.180525
+---------------------------------------------------------------------
+New features
+--------
+- Push new staging builds to https://staging.bitshares.org using Travis
+- #905: Replace react-stockcharts with TradingView charts
+- #1512: Add QR scanner on withdraw (beta)
+- #1448: Display walkthrough when user opens exchange for the first time
+- #1447: Implement popup hint message for Icons all around the UI
+- #1482: Revamped and improved Proposed Transactions tab
+
+Bug fixes and improvements
+--------
+- List some open assets from Openledger (#1554)
+- #1184: React v16 upgrade
+- #1502: Remove HighStock imports as it is no longer needed
+- #1502: Update lodash to v4
+- #1502: Webpack v4 upgrade
+- Fix #1527: Sort orderbook asks properly
+- Fix #1533
+- #1534: Use correct asset precision for Core Exchange Rate update
+- #1535: Enable asset links in transactions
+- Fix #1528: Proposed transactions not updating properly in the ChainStore
+- #1507: Withdraw/Deposit Modal Fixes
+- Fix #1517: Remove hardcoded network fee percentage
+- Fix #1397: Order Expiration Date bug
+- Added DGB, SCR, HERTZ images
+- Update Russian locale file
+- Fix #1516: Exchange header tooltip issue
+- #1515: Add script to fix all locale files
+
+---------------------------------------------------------------------
+Release 2.0.180509
+---------------------------------------------------------------------
+New features
+--------
+- #1475: Add a textbox to the slider in the collateral borrowing section
+- #1369 display market fee percent for sells
+- #1379: Add Market Picker
+- #1276: Enable GDEX gateway
+- #1463: Handle non-existant assets in exchange and asset pages
+- Update bitsharesjs to enable new orders api
+- #1288 - Extract FundFeePool from AccountAssetUpdate and use it in Asset
+- Added titles to all areas of the app to improve history navigation
+
+Bug fixes and improvements
+--------
+- Update electron and electron-builder
+- #1475: Fix warning text and button overlap
+- Fix a text overflow issue in AccessSettings hover popup
+- #1478: Set version in package.json instead of git tag
+- #1481: Fix checkFeeStatusAsync duplicate asset resolution issues with BTS
+- #1469 display market fee precision
+- Fix #1328: Portfolio price/value sorting
+- Performance fix: don't update AccountStore state when no changes are made
+- Added ExchangeHeader Selected Asset Highlight
+- Fix #1464: Refactor MarketStatsCheck and marketUtils to use direct route
+- #1446: Showing "Switch Node" popup only on node description hover
+- Fix willTransitionTo onResetError method
+- Fix #1455
+- Fix #1406: Use higher precision ints for getSqueezePrice
+- Fix #1432, also fixes a balance lookup bug
+- Remove unused code in tcomb_structs
+- Remove pulsate on BalanceValueComponent
+- Fix removal of personal nodes
+- Fix #1451: Restore pub key support to AccountSelector
+- Limited a greedy regex that was wiping out the asset decription
+- Replace extremely heavy steem lib with lightweight steem-js-api fork
+
+---------------------------------------------------------------------
+Release 2.0.180418
+---------------------------------------------------------------------
+New features
+--------
+- #1372 Node Switcher Design Pattern
+- #1396 - Full Date in Account Transaction
+- #1275: Withdraw/Deposit Modal - Add Winex Support
+- #1223: Access Node Popup / Access Nodes List
+
+Bug fixes and improvements
+--------
+- routerTransition refactor, improvements to connectionn logic
+- Fix #1395: Issue asset button not working
+- Fix #1420: Preferred Market Pairing Resets to null
+- #1244: Cleaning up Backend API calls to outside gateways and bridges
+- Filter nodes in AccessSettings to fix key warning
+- Update russian translations
+- Fix possible undefined error in AccountOverview
+- Add several witness-provuided API servers
+- Fix #1388
+- Fix #1367: Restore missing Linux launcher icon
+- Add a phishing account
+
+---------------------------------------------------------------------
 Release 2.0.180402
 ---------------------------------------------------------------------
 Bug fixes and improvements
 --------
+- Fixes to AccountSelector and IssueModal
 - Fix #1376: Hide expiration for margin calls in My Orders
 - Fix #1374: Incorrect CSP making the logo not load
 - Fix #1373: AccountStore init console errors

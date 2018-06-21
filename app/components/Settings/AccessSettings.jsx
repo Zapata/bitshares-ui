@@ -51,6 +51,7 @@ class ApiNode extends React.Component {
     }
 
     remove(url, name, e) {
+        e.target.id = "remove"; // Override target.id to allow Removal Node Modal
         this.props.triggerModal(e, url, name);
     }
 
@@ -130,11 +131,12 @@ class ApiNode extends React.Component {
                             id="automatic_node_switcher"
                             type="checkbox"
                             checked={autoActive}
+                            onChange={() => {}}
                         />
                         <label />
                     </span>
                     <p style={{fontSize: "80%"}}>
-                        Automatic Switching {autoActive ? "on" : "off"}
+                        <Translate content="settings.automatic_short" />:
                     </p>
                 </div>
             ) : (
@@ -143,20 +145,20 @@ class ApiNode extends React.Component {
                         <Icon
                             className={color + " default-icon"}
                             name={isActive ? "connected" : "disconnected"}
-                            size="1_5x"
-                            onClick={this.activate.bind(this, url)}
                             title={
                                 isActive
-                                    ? "settings.active_node"
-                                    : "settings.switch"
+                                    ? "icons.connected"
+                                    : "icons.disconnected"
                             }
+                            size="1_5x"
+                            onClick={this.activate.bind(this, url)}
                         />
                         <Icon
                             className={color + " hover-icon"}
                             name={"connect"}
+                            title="icons.connect"
                             size="1_5x"
                             onClick={this.activate.bind(this, url)}
-                            title="settings.switch"
                         />
                     </a>
                     {name}
@@ -177,6 +179,7 @@ class ApiNode extends React.Component {
                                 id="automatic_node_switcher"
                                 type="checkbox"
                                 checked={autoActive}
+                                onChange={() => {}}
                             />
                             <label />
                         </span>
@@ -234,8 +237,8 @@ class ApiNode extends React.Component {
                                     <Icon
                                         className={"shuffle"}
                                         name={"eye-striked"}
+                                        title="icons.eye_striked"
                                         size="1_5x"
-                                        title="settings.show"
                                     />
                                 </a>
                             )}
@@ -245,8 +248,8 @@ class ApiNode extends React.Component {
                                     <Icon
                                         className={"shuffle"}
                                         name={"eye"}
+                                        title="icons.eye"
                                         size="1_5x"
-                                        title="settings.hide"
                                     />
                                 </a>
                             )}
@@ -255,8 +258,8 @@ class ApiNode extends React.Component {
                                 <a onClick={this.remove.bind(this, url, name)}>
                                     <Icon
                                         name={"times"}
+                                        title="icons.times"
                                         size="1_5x"
-                                        title="settings.remove"
                                     />
                                 </a>
                             )}
@@ -269,20 +272,21 @@ class ApiNode extends React.Component {
                                     <Icon
                                         className={color + " default-icon"}
                                         name={"disconnected"}
+                                        title="icons.connect"
                                         size="1_5x"
-                                        title="settings.switch"
                                     />
                                     <Icon
                                         className={color + " hover-icon"}
                                         name={"connect"}
+                                        title="icons.connect"
                                         size="1_5x"
-                                        title="settings.switch"
                                     />
                                 </a>
                             ) : (
                                 <Icon
                                     className={color}
                                     name={"connected"}
+                                    title="icons.connected"
                                     size="2x"
                                     title="settings.active_node"
                                 />

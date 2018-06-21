@@ -3,11 +3,12 @@ import utils from "common/utils";
 import asset_utils from "common/asset_utils";
 import AssetWrapper from "./AssetWrapper";
 import counterpart from "counterpart";
+import PropTypes from "prop-types";
 
 class AssetName extends React.Component {
     static propTypes = {
-        replace: React.PropTypes.bool.isRequired,
-        dataPlace: React.PropTypes.string.isRequired
+        replace: PropTypes.bool.isRequired,
+        dataPlace: PropTypes.string.isRequired
     };
 
     static defaultProps = {
@@ -22,8 +23,6 @@ class AssetName extends React.Component {
             this.props.replace !== np.replace ||
             this.props.asset !== np.asset ||
             this.props.noPrefix !== np.noPrefix ||
-            this.props.noTip !== np.noTip ||
-            this.props.replace !== np.replace ||
             this.props.noTip !== np.noTip ||
             this.props.dataPlace !== np.dataPlace
         );
@@ -79,7 +78,9 @@ class AssetName extends React.Component {
             const upperCasePrefix =
                 prefix && prefix === "bit"
                     ? prefix
-                    : !!prefix ? prefix.toUpperCase() : prefix;
+                    : !!prefix
+                        ? prefix.toUpperCase()
+                        : prefix;
             let tooltip = noTip
                 ? null
                 : `<div><strong>${upperCasePrefix ||

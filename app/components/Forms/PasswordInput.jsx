@@ -1,5 +1,6 @@
 import React from "react";
-import {PropTypes, Component} from "react";
+import {Component} from "react";
+import PropTypes from "prop-types";
 import cname from "classnames";
 import Translate from "react-translate-component";
 import zxcvbnAsync from "zxcvbn-async";
@@ -165,7 +166,11 @@ class PasswordInput extends Component {
                 <div className={password_class_name}>
                     {/* {noLabel ? null : <Translate component="label" content="wallet.password" />} */}
                     <section>
-                        <label className="left-label">
+                        <label
+                            className={
+                                "left-label " + (this.props.labelClass || "")
+                            }
+                        >
                             <Translate content="wallet.enter_password" />
                         </label>
                         <input
@@ -188,7 +193,9 @@ class PasswordInput extends Component {
                                 className={
                                     score === 5
                                         ? "high"
-                                        : score === 4 ? "medium" : "low"
+                                        : score === 4
+                                            ? "medium"
+                                            : "low"
                                 }
                                 value={score}
                                 max="5"
