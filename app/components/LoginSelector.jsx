@@ -42,6 +42,7 @@ class LoginSelector extends React.Component {
 
         // do redirect to portfolio if user already logged in
         if (
+            this.props.router &&
             Array.isArray(myAccounts) &&
             myAccounts.length !== 0 &&
             childCount === 0
@@ -80,7 +81,6 @@ class LoginSelector extends React.Component {
                             return (
                                 <li key={locale}>
                                     <a
-                                        href
                                         onClick={e => {
                                             e.preventDefault();
                                             IntlActions.switchLocale(locale);
