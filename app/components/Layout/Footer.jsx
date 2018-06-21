@@ -13,11 +13,12 @@ import Icon from "../Icon/Icon";
 import counterpart from "counterpart";
 import "intro.js/introjs.css";
 import guide from "intro.js";
+import PropTypes from "prop-types";
 
 class Footer extends React.Component {
     static propTypes = {
         dynGlobalObject: ChainTypes.ChainObject.isRequired,
-        synced: React.PropTypes.bool.isRequired
+        synced: PropTypes.bool.isRequired
     };
 
     static defaultProps = {
@@ -25,7 +26,7 @@ class Footer extends React.Component {
     };
 
     static contextTypes = {
-        router: React.PropTypes.object
+        router: PropTypes.object
     };
 
     constructor(props) {
@@ -46,7 +47,8 @@ class Footer extends React.Component {
         return (
             nextProps.dynGlobalObject !== this.props.dynGlobalObject ||
             nextProps.backup_recommended !== this.props.backup_recommended ||
-            nextProps.rpc_connection_status !== this.props.rpc_connection_status ||
+            nextProps.rpc_connection_status !==
+                this.props.rpc_connection_status ||
             nextProps.synced !== this.props.synced ||
             nextState.showNodesPopup !== this.state.showNodesPopup
         );
@@ -152,9 +154,7 @@ class Footer extends React.Component {
         let getNode = this.getNode.bind(this);
         let currentNodeIndex = this.getCurrentNodeIndex.call(this);
 
-        let activeNode = getNode(
-            nodes[currentNodeIndex] || nodes[0]
-        );
+        let activeNode = getNode(nodes[currentNodeIndex] || nodes[0]);
 
         if (activeNode.url == autoSelectAPI) {
             let nodeUrl = props.activeNode;
@@ -199,6 +199,7 @@ class Footer extends React.Component {
                                 {state.newVersion && (
                                     <Icon
                                         name="download"
+                                        title="icons.download"
                                         style={{
                                             marginRight: "20px",
                                             marginTop: "10px",
@@ -268,16 +269,16 @@ class Footer extends React.Component {
                             </span>
                         ) : null}
                         {block_height ? (
-                            <div 
-                                onMouseEnter={() => {
-                                    this.setState({showNodesPopup: true});
-                                }}
-                                onMouseLeave={() => {
-                                    this.setState({showNodesPopup: false});
-                                }}
-                                className="grid-block shrink"
-                            >
-                                <div style={{position: "relative"}}>
+                            <div className="grid-block shrink">
+                                <div
+                                    onMouseEnter={() => {
+                                        this.setState({showNodesPopup: true});
+                                    }}
+                                    onMouseLeave={() => {
+                                        this.setState({showNodesPopup: false});
+                                    }}
+                                    style={{position: "relative"}}
+                                >
                                     <div className="footer-status">
                                         {!connected ? (
                                             <span className="warning">
@@ -325,22 +326,24 @@ class Footer extends React.Component {
                         )}
                     </div>
                 </div>
-                <div 
+                <div
                     onMouseEnter={() => {
                         this.setState({showNodesPopup: true});
                     }}
                     onMouseLeave={() => {
                         this.setState({showNodesPopup: false});
                     }}
-                    className="node-access-popup" 
+                    className="node-access-popup"
                     style={{display: this.state.showNodesPopup ? "" : "none"}}
                 >
                     <AccessSettings
                         nodes={this.props.defaults.apiServer}
                         popup={true}
                     />
-                    <div style={{paddingTop: 15}} >
-                        <a onClick={this.onAccess.bind(this)}><Translate content="footer.advanced_settings" /></a>
+                    <div style={{paddingTop: 15}}>
+                        <a onClick={this.onAccess.bind(this)}>
+                            <Translate content="footer.advanced_settings" />
+                        </a>
                     </div>
                 </div>
                 <div
@@ -374,14 +377,19 @@ class Footer extends React.Component {
         this.context.router.push("/settings/access");
     }
 }
-Footer = BindToChainState(Footer, {keep_updating: true});
+Footer = BindToChainState(Footer);
 
 class AltFooter extends Component {
     render() {
         var wallet = WalletDb.getWallet();
         return (
             <AltContainer
-                stores={[CachedPropertyStore, BlockchainStore, WalletDb, SettingsStore]}
+                stores={[
+                    CachedPropertyStore,
+                    BlockchainStore,
+                    WalletDb,
+                    SettingsStore
+                ]}
                 inject={{
                     defaults: () => {
                         return SettingsStore.getState().defaults;
@@ -389,11 +397,15 @@ class AltFooter extends Component {
                     apiLatencies: () => {
                         return SettingsStore.getState().apiLatencies;
                     },
-                    currentNode: () => { 
-                        return SettingsStore.getState().settings.get("apiServer");
+                    currentNode: () => {
+                        return SettingsStore.getState().settings.get(
+                            "apiServer"
+                        );
                     },
                     activeNode: () => {
-                        return SettingsStore.getState().settings.get("activeNode");
+                        return SettingsStore.getState().settings.get(
+                            "activeNode"
+                        );
                     },
                     backup_recommended: () =>
                         wallet &&

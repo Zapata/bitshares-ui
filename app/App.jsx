@@ -1,5 +1,6 @@
-import {ChainStore} from "bitsharesjs/es";
+import {hot} from "react-hot-loader";
 import React from "react";
+import {ChainStore} from "bitsharesjs/es";
 import IntlStore from "stores/IntlStore";
 import AccountStore from "stores/AccountStore";
 import SettingsStore from "stores/SettingsStore";
@@ -13,7 +14,6 @@ import SyncError from "./components/SyncError";
 import LoadingIndicator from "./components/LoadingIndicator";
 import BrowserNotifications from "./components/BrowserNotifications/BrowserNotificationsContainer";
 import Header from "components/Layout/Header";
-// import MobileMenu from "components/Layout/MobileMenu";
 import ReactTooltip from "react-tooltip";
 import NotificationSystem from "react-notification-system";
 import TransactionConfirm from "./components/Blockchain/TransactionConfirm";
@@ -25,6 +25,8 @@ import WalletManagerStore from "stores/WalletManagerStore";
 import Incognito from "./components/Layout/Incognito";
 import {isIncognito} from "feature_detect";
 import {updateGatewayBackers} from "common/gatewayUtils";
+import titleUtils from "common/titleUtils";
+import PropTypes from "prop-types";
 
 class App extends React.Component {
     constructor(props) {
@@ -129,6 +131,18 @@ class App extends React.Component {
             }.bind(this)
         );
         updateGatewayBackers();
+    }
+
+    componentDidUpdate(prevProps) {
+        if (this.props.location !== prevProps.location) {
+            this.onRouteChanged();
+        }
+    }
+
+    onRouteChanged() {
+        document.title = titleUtils.GetTitleByPath(
+            this.props.router.location.pathname
+        );
     }
 
     _onIgnoreIncognitoWarning() {
@@ -308,8 +322,8 @@ RootIntl = connect(RootIntl, {
 
 class Root extends React.Component {
     static childContextTypes = {
-        router: React.PropTypes.object,
-        location: React.PropTypes.object
+        router: PropTypes.object,
+        location: PropTypes.object
     };
 
     componentDidMount() {
@@ -338,4 +352,5 @@ class Root extends React.Component {
     }
 }
 
-export default supplyFluxContext(alt)(Root);
+Root = supplyFluxContext(alt)(Root);
+export default hot(module)(Root);

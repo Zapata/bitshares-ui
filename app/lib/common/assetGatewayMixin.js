@@ -42,17 +42,10 @@ function _getNumberAvailableGateways() {
     for (let g in gatewayStatus) {
         this.props.backedCoins.get(g.toUpperCase(), []).find(c => {
             if (
-                g == "OPEN" &&
-                selectedAsset == c.backingCoinType &&
-                c.depositAllowed &&
+                ((selectedAsset == c.backingCoinType ||
+                    selectedAsset == c.backingCoin) &&
+                    c.depositAllowed) ||
                 c.isAvailable
-            ) {
-                nAvailableGateways++;
-            }
-            if (
-                g == "RUDEX" &&
-                selectedAsset == c.backingCoin &&
-                c.depositAllowed
             ) {
                 nAvailableGateways++;
             }
@@ -174,6 +167,7 @@ function gatewaySelector(args) {
                             <span style={{cursor: "pointer"}}>
                                 &nbsp;<Icon
                                     name="question-circle"
+                                    title="icons.question_circle"
                                     onClick={_openGatewaySite.bind(this)}
                                 />
                             </span>
@@ -214,6 +208,7 @@ function gatewaySelector(args) {
                         </select>
                         <Icon
                             name="chevron-down"
+                            title="icons.chevron_down.gateways"
                             style={{
                                 position: "absolute",
                                 right: "10px",
