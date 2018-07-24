@@ -30,6 +30,7 @@ class AssetName extends React.Component {
 
     render() {
         let {replace, asset, noPrefix, customClass, noTip} = this.props;
+        if (!asset) return null;
         const name = asset.get("symbol");
         const isBitAsset = asset.has("bitasset");
         const isPredMarket =
@@ -78,9 +79,7 @@ class AssetName extends React.Component {
             const upperCasePrefix =
                 prefix && prefix === "bit"
                     ? prefix
-                    : !!prefix
-                        ? prefix.toUpperCase()
-                        : prefix;
+                    : !!prefix ? prefix.toUpperCase() : prefix;
             let tooltip = noTip
                 ? null
                 : `<div><strong>${upperCasePrefix ||
@@ -114,7 +113,7 @@ class AssetName extends React.Component {
                     <span className={!noPrefix ? "asset-prefix-replaced" : ""}>
                         {!noPrefix ? prefix : null}
                     </span>
-                    {replacedName}
+                    <span>{replacedName}</span>
                 </span>
             );
         }

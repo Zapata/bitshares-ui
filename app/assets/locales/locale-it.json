@@ -418,6 +418,18 @@
             "whitelist_authorities": "Autorità whitelist"
         }
     },
+    "app_init": {
+        "browser": "Browser non supportato",
+        "browser_text":
+            "Il browser che stai usando non è stato pienamente testato per il supporto del portafoglio BitShares. Raccomandiamo caldamente di fare il backup del tuo portafoglio e importarlo usando il browser Chrome finché non avremo avuto il tempo di testare appieno il tuo browser. Usalo a tuo rischio.",
+        "connected": "Connesso",
+        "connecting": "Connecting to API server: %(server)s",
+        "not_connected": "Non connesso",
+        "retry": "Riprova",
+        "title": "Problemi nell'inizializzazione dell'applicazione",
+        "understand": "Ho capito",
+        "ws_status": "Stato della connessione del full node"
+    },
     "borrow": {
         "adjust": "Aggiorna posizione",
         "adjust_short": "Aggiorna",
@@ -494,6 +506,7 @@
         "feed_price": "Feed Price",
         "filter": "Filter...",
         "flip": "Flip",
+        "group_order_limit": "Gruppo",
         "hide": "Nascondi",
         "highest_bid": "Domanda (bid) più alta",
         "history": "Storico del mercato",
@@ -528,8 +541,11 @@
         "my_orders": "I miei ordini attivi",
         "native": "Native",
         "new": "Nuovo",
+        "no_asks": "No asks",
         "no_balance": "Saldo insufficiente",
+        "no_bids": "No bids",
         "no_data": "Nessun dato",
+        "no_orders": "No orders",
         "order_depth": "Market Depth",
         "others": "Altri",
         "overbought": "Overbought",
@@ -952,9 +968,11 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "help": "Help",
+        "return_to_top": "Return to top",
         "scan_qr_code": "Scan QR code"
     },
     "header": {
+        "accounts_manage": "Gestisci account",
         "account": "Account",
         "account_notify": "L'account attivo è ora %(account)s",
         "account_value": "Valore dell'Account",
@@ -985,6 +1003,7 @@
         "update_asset": "Aggiorna Asset"
     },
     "icons": {
+        "accounts_manage": "Gestisci account",
         "adjust": "Adjust margin position",
         "assets": "Assets",
         "checkmark_circle": {
@@ -1096,17 +1115,6 @@
         "mode": "Private/Incognito:",
         "warning":
             "If you close your browser without backing up your wallet, you will lose this account permanently."
-    },
-    "init_error": {
-        "browser": "Browser non supportato",
-        "browser_text":
-            "Il browser che stai usando non è stato pienamente testato per il supporto del portafoglio BitShares. Raccomandiamo caldamente di fare il backup del tuo portafoglio e importarlo usando il browser Chrome finché non avremo avuto il tempo di testare appieno il tuo browser. Usalo a tuo rischio.",
-        "connected": "Connesso",
-        "not_connected": "Non connesso",
-        "retry": "Riprova",
-        "title": "Problemi nell'inizializzazione dell'applicazione",
-        "understand": "Ho capito",
-        "ws_status": "Stato della connessione del full node"
     },
     "languages": {
         "de": "Deutsch",
@@ -1257,6 +1265,8 @@
     },
     "operation": {
         "annual_upgrade_account": "{account} è stato promosso a membro annuale",
+        "asset_claim_pool":
+            "{account} claimed {amount} from asset {asset}'s fee pool",
         "asset_create": "{account} ha creato l'asset {asset}",
         "asset_fund_fee_pool":
             "{account} ha finanziato il fee pool di {asset} con {amount}",
@@ -1269,6 +1279,8 @@
         "asset_update": "{account} ha aggiornato l'asset {asset}",
         "asset_update_feed_producers":
             "{account} ha aggiornato i produttori di feed per l'asset {asset}",
+        "asset_update_issuer":
+            "{from_account} transferred {asset} to {to_account}",
         "balance_claim": "{account} ha riscosso un saldo di {amount}",
         "blacklisted_by": "{lister} ha messo in blacklist l'account {listee}",
         "call_order_update":
@@ -1544,6 +1556,7 @@
             "Il proprietario di %(asset)s addebita una commissione di mercato del %(percent)s%% per gli ordini di acquisto. Questa commissione sarà dedotta dalla quantità che ricevi quando l'ordine è eseguito, e non è pagata quando l'ordine viene creato.",
         "memo_tip":
             "Puoi includere qualsiasi messaggio nel campo 'memo'. Il memo è facoltativo, ma in genere richiesto per i trasferimenti verso un exchange.",
+        "no_groups_available": "No groupings available using this API server",
         "no_price":
             "Non c'è nessun prezzo disponibile per questo asset che possa essere usato per stimarne il valore.",
         "over_limit":
@@ -1664,6 +1677,7 @@
             "all": "Mostra tutti",
             "assert": "Assert operation",
             "asset_claim_fees": "Riscuoti le commissioni dell'asset",
+            "asset_claim_pool": "Claim asset fee pool",
             "asset_create": "Crea asset",
             "asset_fund_fee_pool": "Finanzia fee pool dell'asset",
             "asset_global_settle": "Settlement dell'asset globale",
@@ -1676,6 +1690,7 @@
             "asset_update_bitasset": "Aggiorna SmartCoin",
             "asset_update_feed_producers":
                 "Aggiorna produttori di feed per l'asset",
+            "asset_update_issuer": "Update asset issuer",
             "balance_claim": "Riscuoti saldo",
             "blind_transfer": "Blinded transfer",
             "call_order_update": "Aggiorna margine",

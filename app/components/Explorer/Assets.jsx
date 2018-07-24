@@ -2,7 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import AssetActions from "actions/AssetActions";
 import SettingsActions from "actions/SettingsActions";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import Immutable from "immutable";
 import Translate from "react-translate-component";
 import LinkToAccountById from "../Utility/LinkToAccountById";
@@ -135,9 +135,7 @@ class Assets extends React.Component {
                         "_" +
                         (description.market
                             ? description.market
-                            : coreAsset
-                                ? coreAsset.get("symbol")
-                                : "BTS");
+                            : coreAsset ? coreAsset.get("symbol") : "BTS");
 
                     return (
                         <tr key={asset.symbol}>
@@ -196,9 +194,7 @@ class Assets extends React.Component {
                         "_" +
                         (description.market
                             ? description.market
-                            : coreAsset
-                                ? coreAsset.get("symbol")
-                                : "BTS");
+                            : coreAsset ? coreAsset.get("symbol") : "BTS");
 
                     return (
                         <tr key={asset.symbol}>
@@ -267,9 +263,7 @@ class Assets extends React.Component {
                         "_" +
                         (description.market
                             ? description.market
-                            : coreAsset
-                                ? coreAsset.get("symbol")
-                                : "BTS");
+                            : coreAsset ? coreAsset.get("symbol") : "BTS");
 
                     return (
                         <tr key={asset.id.split(".")[2]}>

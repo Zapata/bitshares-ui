@@ -414,6 +414,18 @@
             "whitelist_authorities": "Whitelist authority"
         }
     },
+    "app_init": {
+        "browser": "Desteklenmeyen tarayıcı",
+        "browser_text":
+            "Kullandığınız tarayıcı üzerinde testlerimiz devam etmektedir, bu yüzden BitShares Cüzdanını desteklemeyebilir. Cüzdanınızı yedekleyip Chrome Tarayıcısını kullanarak içeri aktarmanızı önemle tavsiye ederiz. Mesuliyet size aittir.",
+        "connected": "Bağlandı",
+        "connecting": "Connecting to API server: %(server)s",
+        "not_connected": "Bağlı değil",
+        "retry": "Yeniden dene",
+        "title": "Uygulama başlatma problemleri",
+        "understand": "Anladım ve onaylıyorum.",
+        "ws_status": "Websocket Bağlantı Durumu"
+    },
     "borrow": {
         "adjust": "Pozisyonu Güncelle",
         "adjust_short": "Adjust",
@@ -490,6 +502,7 @@
         "feed_price": "Feed Price",
         "filter": "Filter...",
         "flip": "Flip",
+        "group_order_limit": "grup",
         "hide": "Gizle",
         "highest_bid": "En yüksek",
         "history": "Son İşlemler",
@@ -524,8 +537,11 @@
         "my_orders": "Açık emirlerim",
         "native": "Native",
         "new": "Yeni",
+        "no_asks": "No asks",
         "no_balance": "Yetersiz bakiye",
+        "no_bids": "No bids",
         "no_data": "Veri yok",
+        "no_orders": "No orders",
         "order_depth": "Piyasa Derinliği",
         "others": "Diğerleri",
         "overbought": "Aşırı Talep",
@@ -945,9 +961,11 @@
         "cancel": "Cancel",
         "confirm": "Confirm",
         "help": "Help",
+        "return_to_top": "Return to top",
         "scan_qr_code": "Scan QR code"
     },
     "header": {
+        "accounts_manage": "Hesapları yönet",
         "account": "Hesap",
         "account_notify": "Aktif hesap: %(account)s",
         "account_value": "Hesap değeri",
@@ -976,6 +994,7 @@
         "update_asset": "Dijital Varlık Güncelle"
     },
     "icons": {
+        "accounts_manage": "Hesapları yönet",
         "adjust": "Adjust margin position",
         "assets": "Assets",
         "checkmark_circle": {
@@ -1087,17 +1106,6 @@
         "mode": "Private/Incognito:",
         "warning":
             "If you close your browser without backing up your wallet, you will lose this account permanently."
-    },
-    "init_error": {
-        "browser": "Desteklenmeyen tarayıcı",
-        "browser_text":
-            "Kullandığınız tarayıcı üzerinde testlerimiz devam etmektedir, bu yüzden BitShares Cüzdanını desteklemeyebilir. Cüzdanınızı yedekleyip Chrome Tarayıcısını kullanarak içeri aktarmanızı önemle tavsiye ederiz. Mesuliyet size aittir.",
-        "connected": "Bağlandı",
-        "not_connected": "Bağlı değil",
-        "retry": "Yeniden dene",
-        "title": "Uygulama başlatma problemleri",
-        "understand": "Anladım ve onaylıyorum.",
-        "ws_status": "Websocket Bağlantı Durumu"
     },
     "languages": {
         "de": "Deutsch",
@@ -1248,6 +1256,8 @@
     },
     "operation": {
         "annual_upgrade_account": "{account} yıllık üyeliğe yükseltildi.",
+        "asset_claim_pool":
+            "{account} claimed {amount} from asset {asset}'s fee pool",
         "asset_create": "{account} şu dijital varlığı oluşturdu: {asset}",
         "asset_fund_fee_pool":
             "{account} tarafından {asset} ücret havuzuna {amount} eklendi.",
@@ -1261,6 +1271,8 @@
         "asset_update": "{account} şu dijital varlığı güncelledi: {asset}",
         "asset_update_feed_producers":
             "{account} şu dijital varlığın fiyat kaynaklarını güncelledi: {asset}",
+        "asset_update_issuer":
+            "{from_account} transferred {asset} to {to_account}",
         "balance_claim":
             "{account} bakiye güncelleme işlemi - Miktar: {amount}",
         "blacklisted_by": "{lister} kara listeye {listee} adlı hesabı ekledi.",
@@ -1532,6 +1544,7 @@
             "The owner of %(asset)s charges a market fee of %(percent)s%% for buy orders. This fee will be subtracted from the amount you receive when your order fills, it is not paid when placing an order.",
         "memo_tip":
             "You may include any message in the memo field. Memos are optional but generally required for transfers to exchanges.",
+        "no_groups_available": "No groupings available using this API server",
         "no_price":
             "Bu dijital varlığın değerini tespit etmek için piyasada yeterli veri bulunmamaktadır.",
         "over_limit":
@@ -1649,6 +1662,7 @@
             "all": "Tümünü göster",
             "assert": "İşlem beyanı",
             "asset_claim_fees": "Aktif ücretlerini talep et",
+            "asset_claim_pool": "Claim asset fee pool",
             "asset_create": "Yeni Oluştur",
             "asset_fund_fee_pool": "Aktif ücret havuzu finansı",
             "asset_global_settle": "Genel Aktif Ödemesi",
@@ -1660,6 +1674,7 @@
             "asset_update": "Güncelle",
             "asset_update_bitasset": "Akıllıpara güncelleme",
             "asset_update_feed_producers": "Fiyat kaynağı hesabı güncelleme",
+            "asset_update_issuer": "Update asset issuer",
             "balance_claim": "Bakiye talebi",
             "blind_transfer": "Kör transfer",
             "call_order_update": "Marjin güncelleme",
