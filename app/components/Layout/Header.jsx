@@ -1,5 +1,5 @@
 import React from "react";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import {connect} from "alt-react";
 import ActionSheet from "react-foundation-apps/src/action-sheet";
 import AccountActions from "actions/AccountActions";
@@ -22,14 +22,15 @@ import TotalBalanceValue from "../Utility/TotalBalanceValue";
 import ReactTooltip from "react-tooltip";
 import {Apis} from "bitsharesjs-ws";
 import notify from "actions/NotificationActions";
-// import IntlActions from "actions/IntlActions";
 import AccountImage from "../Account/AccountImage";
 import {ChainStore} from "bitsharesjs/es";
 import WithdrawModal from "../Modal/WithdrawModalNew";
 import {List} from "immutable";
-import PropTypes from "prop-types";
+import DropDownMenu from "./HeaderDropdown";
+import {withRouter} from "react-router-dom";
 
-var logo = require("assets/logo-ico-blue.png");
+import {getLogo} from "branding";
+var logo = getLogo();
 
 // const FlagImage = ({flag, width = 20, height = 20}) => {
 //     return <img height={height} width={width} src={`${__BASE_URL__}language-dropdown/${flag.toUpperCase()}.png`} />;
@@ -40,16 +41,13 @@ const SUBMENUS = {
 };
 
 class Header extends React.Component {
-    static contextTypes = {
-        location: PropTypes.object.isRequired,
-        router: PropTypes.object.isRequired
-    };
-
-    constructor(props, context) {
+    constructor(props) {
         super();
         this.state = {
-            active: context.location.pathname,
-            accountsListDropdownActive: false
+            active: props.location.pathname,
+            accountsListDropdownActive: false,
+            dropdownActive: false,
+            dropdownSubmenuActive: false
         };
 
         this.unlisten = null;
@@ -68,13 +66,11 @@ class Header extends React.Component {
     }
 
     componentWillMount() {
-        this.unlisten = this.context.router.listen((newState, err) => {
-            if (!err) {
-                if (this.unlisten && this.state.active !== newState.pathname) {
-                    this.setState({
-                        active: newState.pathname
-                    });
-                }
+        this.unlisten = this.props.history.listen(newState => {
+            if (this.unlisten && this.state.active !== newState.pathname) {
+                this.setState({
+                    active: newState.pathname
+                });
             }
         });
     }
@@ -116,7 +112,8 @@ class Header extends React.Component {
                 this.state.dropdownSubmenuActive ||
             nextState.accountsListDropdownActive !==
                 this.state.accountsListDropdownActive ||
-            nextProps.height !== this.props.height
+            nextProps.height !== this.props.height ||
+            nextProps.location.pathname !== this.props.location.pathname
         );
     }
 
@@ -167,26 +164,32 @@ class Header extends React.Component {
             });
         }
 
-        this.context.router.push(route);
+        this.props.history.push(route);
         this._closeDropdown();
     }
 
     _closeAccountsListDropdown() {
-        this.setState({
-            accountsListDropdownActive: false
-        });
+        if (this.state.accountsListDropdownActive) {
+            this.setState({
+                accountsListDropdownActive: false
+            });
+        }
     }
 
     _closeMenuDropdown() {
-        this.setState({
-            dropdownActive: false
-        });
+        if (this.state.dropdownActive) {
+            this.setState({
+                dropdownActive: false
+            });
+        }
     }
 
     _closeDropdownSubmenu() {
-        this.setState({
-            dropdownSubmenuActive: false
-        });
+        if (this.state.dropdownSubmenuActive) {
+            this.setState({
+                dropdownSubmenuActive: false
+            });
+        }
     }
 
     _closeDropdown() {
@@ -208,10 +211,10 @@ class Header extends React.Component {
     _accountClickHandler(account_name, e) {
         e.preventDefault();
         ZfApi.publish("account_drop_down", "close");
-        if (this.context.location.pathname.indexOf("/account/") !== -1) {
-            let currentPath = this.context.location.pathname.split("/");
+        if (this.props.location.pathname.indexOf("/account/") !== -1) {
+            let currentPath = this.props.location.pathname.split("/");
             currentPath[2] = account_name;
-            this.context.router.push(currentPath.join("/"));
+            this.props.history.push(currentPath.join("/"));
         }
         if (account_name !== this.props.currentAccount) {
             AccountActions.setCurrentAccount.defer(account_name);
@@ -225,15 +228,7 @@ class Header extends React.Component {
             });
             this._closeDropdown();
         }
-        // this.onClickUser(account_name, e);
     }
-
-    // onClickUser(account, e) {
-    //     e.stopPropagation();
-    //     e.preventDefault();
-    //
-    //     this.context.router.push(`/account/${account}/overview`);
-    // }
 
     _toggleAccountDropdownMenu() {
         // prevent state toggling if user cannot have multiple accounts
@@ -256,7 +251,7 @@ class Header extends React.Component {
         });
     }
 
-    _toggleDropdownMenu(e) {
+    _toggleDropdownMenu() {
         this.setState({
             dropdownActive: !this.state.dropdownActive
         });
@@ -292,14 +287,6 @@ class Header extends React.Component {
         }
     }
 
-    _onAddContact() {
-        AccountActions.addAccountContact(this.props.currentAccount);
-    }
-
-    _onRemoveContact() {
-        AccountActions.removeAccountContact(this.props.currentAccount);
-    }
-
     render() {
         let {active} = this.state;
         let {
@@ -314,12 +301,13 @@ class Header extends React.Component {
         let maxHeight = Math.max(40, height - 67 - 36) + "px";
 
         const a = ChainStore.getAccount(currentAccount);
+        const showAccountLinks = !!a;
         const isMyAccount = !a
             ? false
             : AccountStore.isMyAccount(a) ||
               (passwordLogin && currentAccount === passwordAccount);
-        const isContact = this.props.contacts.has(currentAccount);
         const enableDepositWithdraw =
+            !!a &&
             Apis.instance() &&
             Apis.instance().chain_id &&
             Apis.instance().chain_id.substr(0, 8) === "4018d784";
@@ -1117,12 +1105,12 @@ class Header extends React.Component {
                                 <div className="table-cell">
                                     <Icon
                                         size="2x"
-                                        name="folder"
-                                        title="icons.folder"
+                                        name="people"
+                                        title="icons.manage_accounts"
                                     />
                                 </div>
                                 <div className="table-cell">
-                                    <Translate content="explorer.accounts.title" />
+                                    <Translate content="header.accounts_manage" />
                                 </div>
                             </li>
                             {accountsList}
@@ -1161,617 +1149,27 @@ class Header extends React.Component {
                         {(this.state.dropdownSubmenuActive &&
                             submenus[this.state.dropdownSubmenuActiveItem] &&
                             submenus[this.state.dropdownSubmenuActiveItem]) || (
-                            <ul
-                                className="dropdown header-menu"
-                                style={{
-                                    left: -200,
-                                    top: 64,
-                                    maxHeight: !this.state.dropdownActive
-                                        ? 0
-                                        : maxHeight,
-                                    overflowY: "auto"
-                                }}
-                            >
-                                <li
-                                    className="divider"
-                                    onClick={this._toggleLock.bind(this)}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="power"
-                                            title="icons.power"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate
-                                            content={`header.${
-                                                this.props.locked
-                                                    ? "unlock_short"
-                                                    : "lock_short"
-                                            }`}
-                                        />
-                                    </div>
-                                </li>
-
-                                {this.props.locked ? (
-                                    <li
-                                        className={cnames({
-                                            active:
-                                                active.indexOf(
-                                                    `/create-account/${
-                                                        !passwordLogin
-                                                            ? "wallet"
-                                                            : "password"
-                                                    }`
-                                                ) !== -1
-                                        })}
-                                        onClick={this._onNavigate.bind(
-                                            this,
-                                            `/create-account/${
-                                                !passwordLogin
-                                                    ? "wallet"
-                                                    : "password"
-                                            }`
-                                        )}
-                                    >
-                                        <div className="table-cell">
-                                            <Icon
-                                                size="2x"
-                                                name="user"
-                                                title="icons.user.create_account"
-                                            />
-                                        </div>
-                                        <div className="table-cell">
-                                            <Translate content="header.create_account" />
-                                        </div>
-                                    </li>
-                                ) : null}
-
-                                {!this.props.locked ? (
-                                    <li
-                                        className={cnames({
-                                            active:
-                                                active.indexOf("/account") !==
-                                                -1
-                                        })}
-                                        onClick={this._onNavigate.bind(
-                                            this,
-                                            `/account/${currentAccount}`
-                                        )}
-                                    >
-                                        <div className="table-cell">
-                                            <Icon
-                                                size="2x"
-                                                name="dashboard"
-                                                title="icons.dasboard"
-                                            />
-                                        </div>
-                                        <div className="table-cell">
-                                            <Translate content="header.dashboard" />
-                                        </div>
-                                    </li>
-                                ) : null}
-
-                                {!isMyAccount ? (
-                                    <li
-                                        className="divider"
-                                        onClick={this[
-                                            isContact
-                                                ? "_onRemoveContact"
-                                                : "_onAddContact"
-                                        ].bind(this)}
-                                    >
-                                        <div className="table-cell">
-                                            <Icon
-                                                size="2x"
-                                                name={`${
-                                                    isContact ? "minus" : "plus"
-                                                }-circle`}
-                                                title={
-                                                    isContact
-                                                        ? "icons.minus_circle.remove_contact"
-                                                        : "icons.plus_circle.add_contact"
-                                                }
-                                            />
-                                        </div>
-                                        <div className="table-cell">
-                                            <Translate
-                                                content={`account.${
-                                                    isContact
-                                                        ? "unfollow"
-                                                        : "follow"
-                                                }`}
-                                            />
-                                        </div>
-                                    </li>
-                                ) : null}
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf("/market/") !==
-                                                -1
-                                        },
-                                        "column-show-small"
-                                    )}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        tradeUrl
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="trade"
-                                            title="icons.trade.exchange"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.exchange" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf("/explorer") !==
-                                                -1
-                                        },
-                                        "column-show-small"
-                                    )}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        "/explorer/blocks"
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="server"
-                                            title="icons.server"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.explorer" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames({
-                                        active:
-                                            active.indexOf("/transfer") !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        "/transfer"
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="transfer"
-                                            title="icons.transfer"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.payments_legacy" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf(
-                                                    "/deposit-withdraw"
-                                                ) !== -1
-                                        },
-                                        {disabled: !enableDepositWithdraw}
-                                    )}
-                                    onClick={
-                                        !enableDepositWithdraw
-                                            ? () => {}
-                                            : this._onNavigate.bind(
-                                                  this,
-                                                  "/deposit-withdraw"
-                                              )
-                                    }
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="deposit"
-                                            title="icons.deposit.deposit"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="gateway.deposit" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf(
-                                                    "/deposit-withdraw"
-                                                ) !== -1
-                                        },
-                                        {disabled: !enableDepositWithdraw}
-                                    )}
-                                    onClick={
-                                        !enableDepositWithdraw
-                                            ? () => {}
-                                            : this._showDeposit.bind(this)
-                                    }
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="deposit"
-                                            title="icons.deposit.deposit"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="modal.deposit.submit_beta" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf(
-                                                    "/deposit-withdraw"
-                                                ) !== -1
-                                        },
-                                        {disabled: !enableDepositWithdraw}
-                                    )}
-                                    onClick={
-                                        !enableDepositWithdraw
-                                            ? () => {}
-                                            : this._onNavigate.bind(
-                                                  this,
-                                                  "/deposit-withdraw"
-                                              )
-                                    }
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="withdraw"
-                                            title="icons.withdraw"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="modal.withdraw.submit" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        "divider",
-                                        {
-                                            active:
-                                                active.indexOf(
-                                                    "/deposit-withdraw"
-                                                ) !== -1
-                                        },
-                                        {disabled: !enableDepositWithdraw}
-                                    )}
-                                    onClick={
-                                        !enableDepositWithdraw
-                                            ? () => {}
-                                            : this._showWithdraw.bind(this)
-                                    }
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="withdraw"
-                                            title="icons.withdraw"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="modal.withdraw.submit_beta" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf("/settings") !==
-                                                -1
-                                        },
-                                        "divider",
-                                        "desktop-only"
-                                    )}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        "/settings"
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="cogs"
-                                            title="icons.cogs"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.settings" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf("/settings") !==
-                                                -1
-                                        },
-                                        "divider",
-                                        "mobile-only",
-                                        "has-submenu"
-                                    )}
-                                    onClick={this._toggleDropdownSubmenu.bind(
-                                        this,
-                                        SUBMENUS.SETTINGS
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="cogs"
-                                            title="icons.cogs"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.settings" />{" "}
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames({
-                                        active: active.indexOf("/news") !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        "/news"
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="news"
-                                            title="icons.news"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="news.news" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames(
-                                        {
-                                            active:
-                                                active.indexOf(
-                                                    "/help/introduction/bitshares"
-                                                ) !== -1
-                                        },
-                                        "divider"
-                                    )}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        "/help/introduction/bitshares"
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="question-circle"
-                                            title="icons.question_circle"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="header.help" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames({
-                                        active: active.indexOf("/voting") !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/voting`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="thumbs-up"
-                                            title="icons.thumbs_up"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="account.voting" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames({
-                                        active:
-                                            active.indexOf("/assets") !== -1 &&
-                                            active.indexOf("/account/") !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/assets`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="assets"
-                                            title="icons.assets"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="explorer.assets.title" />
-                                    </div>
-                                </li>
-                                <li
-                                    className={cnames({
-                                        active:
-                                            active.indexOf(
-                                                "/signedmessages"
-                                            ) !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/signedmessages`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="text"
-                                            title="icons.text.signed_messages"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="account.signedmessages.menuitem" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames({
-                                        active:
-                                            active.indexOf("/member-stats") !==
-                                            -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/member-stats`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="text"
-                                            title="icons.text.membership_stats"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="account.member.stats" />
-                                    </div>
-                                </li>
-
-                                {isMyAccount ? (
-                                    <li
-                                        className={cnames({
-                                            active:
-                                                active.indexOf("/vesting") !==
-                                                -1
-                                        })}
-                                        onClick={this._onNavigate.bind(
-                                            this,
-                                            `/account/${currentAccount}/vesting`
-                                        )}
-                                    >
-                                        <div className="table-cell">
-                                            <Icon
-                                                size="2x"
-                                                name="hourglass"
-                                                title="icons.hourglass"
-                                            />
-                                        </div>
-                                        <div className="table-cell">
-                                            <Translate content="account.vesting.title" />
-                                        </div>
-                                    </li>
-                                ) : null}
-
-                                <li
-                                    className={cnames({
-                                        active:
-                                            active.indexOf("/whitelist") !== -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/whitelist`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="list"
-                                            title="icons.list"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="account.whitelist.title" />
-                                    </div>
-                                </li>
-
-                                <li
-                                    className={cnames("divider", {
-                                        active:
-                                            active.indexOf("/permissions") !==
-                                            -1
-                                    })}
-                                    onClick={this._onNavigate.bind(
-                                        this,
-                                        `/account/${currentAccount}/permissions`
-                                    )}
-                                >
-                                    <div className="table-cell">
-                                        <Icon
-                                            size="2x"
-                                            name="warning"
-                                            title="icons.warning"
-                                        />
-                                    </div>
-                                    <div className="table-cell">
-                                        <Translate content="account.permissions" />
-                                    </div>
-                                </li>
-
-                                {!hasLocalWallet && (
-                                    <li
-                                        className={cnames(
-                                            {
-                                                active:
-                                                    active.indexOf(
-                                                        "/accounts"
-                                                    ) !== -1
-                                            },
-                                            "divider"
-                                        )}
-                                        onClick={this._onNavigate.bind(
-                                            this,
-                                            "/accounts"
-                                        )}
-                                    >
-                                        <div className="table-cell">
-                                            <Icon
-                                                size="2x"
-                                                name="folder"
-                                                title="icons.folder"
-                                            />
-                                        </div>
-                                        <div className="table-cell">
-                                            <Translate content="explorer.accounts.title" />
-                                        </div>
-                                    </li>
+                            <DropDownMenu
+                                dropdownActive={this.state.dropdownActive}
+                                toggleLock={this._toggleLock.bind(this)}
+                                maxHeight={maxHeight}
+                                locked={this.props.locked}
+                                active={active}
+                                passwordLogin={passwordLogin}
+                                onNavigate={this._onNavigate.bind(this)}
+                                isMyAccount={isMyAccount}
+                                contacts={this.props.contacts}
+                                showAccountLinks={showAccountLinks}
+                                tradeUrl={tradeUrl}
+                                currentAccount={currentAccount}
+                                enableDepositWithdraw={enableDepositWithdraw}
+                                showDeposit={this._showDeposit.bind(this)}
+                                showWithdraw={this._showWithdraw.bind(this)}
+                                toggleDropdownSubmenu={this._toggleDropdownSubmenu.bind(
+                                    this,
+                                    SUBMENUS.SETTINGS
                                 )}
-                            </ul>
+                            />
                         )}
                     </div>
                 </div>
@@ -1799,7 +1197,7 @@ class Header extends React.Component {
     }
 }
 
-export default connect(Header, {
+Header = connect(Header, {
     listenTo() {
         return [
             AccountStore,
@@ -1835,3 +1233,5 @@ export default connect(Header, {
         };
     }
 });
+
+export default withRouter(Header);

@@ -2,7 +2,6 @@ import alt from "alt-instance";
 import {Apis} from "bitsharesjs-ws";
 import utils from "common/utils";
 import WalletApi from "api/WalletApi";
-import ApplicationApi from "api/ApplicationApi";
 import WalletDb from "stores/WalletDb";
 import {ChainStore} from "bitsharesjs/es";
 import big from "bignumber.js";
@@ -356,47 +355,7 @@ class AssetActions {
             });
     }
 
-    issueAsset(to_account, from_account, asset_id, amount, memo) {
-        ApplicationApi.issue_asset(
-            to_account,
-            from_account,
-            asset_id,
-            amount,
-            memo
-        );
-    }
-
-    // issueAsset(account_id, issueObject) {
-    //     console.log("account_id: ", account_id, issueObject);
-    //     // Create asset action here...
-    //     var tr = WalletApi.new_transaction();
-    //     tr.add_type_operation("asset_issue", {
-    //         fee: {
-    //             amount: 0,
-    //             asset_id: 0
-    //         },
-    //         "issuer": account_id,
-    //         "asset_to_issue": {
-    //             "amount": issueObject.amount,
-    //             "asset_id": issueObject.asset_id
-    //         },
-    //         "issue_to_account": issueObject.to_id,
-
-    //         "extensions": [
-
-    //         ]
-    //     });
-    //     return WalletDb.process_transaction(tr, null, true).then(result => {
-    //         console.log("asset issue result:", result);
-    //         // this.dispatch(account_id);
-    //         return true;
-    //     }).catch(error => {
-    //         console.log("[AssetActions.js:150] ----- createAsset error ----->", error);
-    //         return false;
-    //     });
-    // }
-
-    getAssetList(start, count, gateAssets = false) {
+    getAssetList(start, count, includeGateways = false) {
         let id = start + "_" + count;
         return dispatch => {
             if (!inProgress[id]) {
@@ -454,15 +413,15 @@ class AssetActions {
                     });
 
                 // Fetch next 10 assets for each gateAsset on request
-                if (!!gateAssets) {
-                    let gatewayPrefies = [
+                if (includeGateways) {
+                    let gatewayPrefixes = [
                         "BRIDGE",
                         "GDEX",
                         "RUDEX",
                         "OPEN",
                         "WIN"
                     ];
-                    gatewayPrefies.forEach(a => {
+                    gatewayPrefixes.forEach(a => {
                         this.getAssetList(a + "." + start, 10);
                     });
                 }

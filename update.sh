@@ -8,7 +8,7 @@ get_latest_release() {
 
 update_master() {
     git checkout master
-    git pull official master --no-edit
+    git pull official $latest_release --no-edit
     git tag "$latest_release-zapata"
     docker build -t registry.dex.trading/bitshares-ui:$latest_release-zapata . 
     docker push registry.dex.trading/bitshares-ui:$latest_release-zapata
