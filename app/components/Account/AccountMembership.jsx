@@ -1,5 +1,5 @@
 import React from "react";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import Translate from "react-translate-component";
 import {ChainStore} from "bitsharesjs/es";
 import ChainTypes from "../Utility/ChainTypes";
@@ -10,6 +10,8 @@ import TimeAgo from "../Utility/TimeAgo";
 import HelpContent from "../Utility/HelpContent";
 import accountUtils from "common/account_utils";
 import {Tabs, Tab} from "../Utility/Tabs";
+import {getWalletName} from "branding";
+import {getWalletURL} from "../../branding";
 
 class FeeHelp extends React.Component {
     static propTypes = {
@@ -176,11 +178,16 @@ class AccountMembership extends React.Component {
                                                         <h4>
                                                             <Translate content="account.member.referral_link" />
                                                         </h4>
-                                                        <Translate content="account.member.referral_text" />:
-                                                        <h5
-                                                        >{`https://wallet.bitshares.org/?r=${
-                                                            account.name
-                                                        }`}</h5>
+                                                        <Translate
+                                                            content="account.member.referral_text"
+                                                            wallet_name={getWalletName()}
+                                                        />:
+                                                        <h5>
+                                                            {getWalletURL() +
+                                                                `/?r=${
+                                                                    account.name
+                                                                }`}
+                                                        </h5>
                                                     </div>
                                                 ) : null}
                                                 <h4>
@@ -202,7 +209,7 @@ class AccountMembership extends React.Component {
                                                                 &nbsp; (<Link
                                                                     to={`account/${
                                                                         account.lifetime_referrer_name
-                                                                    }/overview`}
+                                                                    }`}
                                                                 >
                                                                     {
                                                                         account.lifetime_referrer_name
@@ -219,7 +226,7 @@ class AccountMembership extends React.Component {
                                                                 &nbsp; (<Link
                                                                     to={`account/${
                                                                         account.registrar_name
-                                                                    }/overview`}
+                                                                    }`}
                                                                 >
                                                                     {
                                                                         account.registrar_name
@@ -236,7 +243,7 @@ class AccountMembership extends React.Component {
                                                                 &nbsp; (<Link
                                                                     to={`account/${
                                                                         account.referrer_name
-                                                                    }/overview`}
+                                                                    }`}
                                                                 >
                                                                     {
                                                                         account.referrer_name

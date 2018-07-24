@@ -36,22 +36,17 @@ class Exchange extends React.Component {
     static propTypes = {
         marketCallOrders: PropTypes.object.isRequired,
         activeMarketHistory: PropTypes.object.isRequired,
-        viewSettings: PropTypes.object.isRequired,
-        priceData: PropTypes.array.isRequired,
-        volumeData: PropTypes.array.isRequired
+        viewSettings: PropTypes.object.isRequired
     };
 
     static defaultProps = {
         marketCallOrders: [],
         activeMarketHistory: {},
-        viewSettings: {},
-        priceData: [],
-        volumeData: []
+        viewSettings: {}
     };
 
     constructor(props) {
         super();
-
         this.state = {
             ...this._initialState(props),
             expirationType: {
@@ -61,7 +56,8 @@ class Exchange extends React.Component {
             expirationCustomTime: {
                 bid: moment().add(1, "day"),
                 ask: moment().add(1, "day")
-            }
+            },
+            feeStatus: {}
         };
 
         this._getWindowSize = debounce(this._getWindowSize.bind(this), 150);
@@ -202,7 +198,6 @@ class Exchange extends React.Component {
             buySellTop: ws.get("buySellTop", true),
             buyFeeAssetIdx: ws.get("buyFeeAssetIdx", 0),
             sellFeeAssetIdx: ws.get("sellFeeAssetIdx", 0),
-            feeStatus: {},
             height: window.innerHeight,
             width: window.innerWidth,
             chartHeight: ws.get("chartHeight", 600),
@@ -220,6 +215,8 @@ class Exchange extends React.Component {
     }
 
     componentDidMount() {
+        MarketsActions.getTrackedGroupsConfig();
+
         SettingsActions.changeViewSetting.defer({
             [this._getLastMarketKey()]:
                 this.props.quoteAsset.get("symbol") +
@@ -233,11 +230,20 @@ class Exchange extends React.Component {
         });
     }
 
-    shouldComponentUpdate(nextProps) {
-        if (!nextProps.marketReady && !this.props.marketReady) {
+    shouldComponentUpdate(np, ns) {
+        if (!np.marketReady && !this.props.marketReady) {
             return false;
         }
-        return true;
+        let propsChanged = false;
+        for (let key in np) {
+            if (np.hasOwnProperty(key)) {
+                propsChanged =
+                    propsChanged ||
+                    !utils.are_equal_shallow(np[key], this.props[key]);
+                if (propsChanged) break;
+            }
+        }
+        return propsChanged || !utils.are_equal_shallow(ns, this.state);
     }
 
     _checkFeeStatus(
@@ -1155,6 +1161,25 @@ class Exchange extends React.Component {
         });
     }
 
+    _onGroupOrderLimitChange(e) {
+        if (e) e.preventDefault();
+        let groupLimit = parseInt(e.target.value);
+        MarketsActions.changeCurrentGroupLimit(groupLimit);
+        if (groupLimit !== this.props.currentGroupOrderLimit) {
+            MarketsActions.changeCurrentGroupLimit(groupLimit);
+            let currentSub = this.props.sub.split("_");
+            MarketsActions.unSubscribeMarket(currentSub[0], currentSub[1]).then(
+                () => {
+                    this.props.subToMarket(
+                        this.props,
+                        this.props.bucketSize,
+                        groupLimit
+                    );
+                }
+            );
+        }
+    }
+
     render() {
         let {
             currentAccount,
@@ -1174,7 +1199,9 @@ class Exchange extends React.Component {
             totals,
             feedPrice,
             buckets,
-            coreAsset
+            coreAsset,
+            trackedGroupsConfig,
+            currentGroupOrderLimit
         } = this.props;
 
         const {
@@ -1185,7 +1212,9 @@ class Exchange extends React.Component {
             flatBids,
             flatAsks,
             flatCalls,
-            flatSettles
+            flatSettles,
+            groupedBids,
+            groupedAsks
         } = marketData;
 
         let {
@@ -1215,10 +1244,6 @@ class Exchange extends React.Component {
 
         const showVolumeChart = this.props.viewSettings.get(
             "showVolumeChart",
-            true
-        );
-        const enableChartClamp = this.props.viewSettings.get(
-            "enableChartClamp",
             true
         );
 
@@ -1551,6 +1576,13 @@ class Exchange extends React.Component {
                     buySellTop ? 4 : 1
                 }`}
                 currentAccount={this.props.currentAccount.get("id")}
+                handleGroupOrderLimitChange={this._onGroupOrderLimitChange.bind(
+                    this
+                )}
+                trackedGroupsConfig={trackedGroupsConfig}
+                currentGroupOrderLimit={currentGroupOrderLimit}
+                groupedBids={groupedBids}
+                groupedAsks={groupedAsks}
             />
         );
 
@@ -1833,6 +1865,8 @@ class Exchange extends React.Component {
                                     {name: "add", index: 4}
                                 ]}
                                 current={`${quoteSymbol}_${baseSymbol}`}
+                                location={this.props.location}
+                                history={this.props.history}
                             />
                         </div>
                         <div
