@@ -1,3 +1,7 @@
+div#CenterContent {
+    padding-bottom: 2rem !important;
+}
+
 .market-layout {
     > .grid-block {
         // padding: 0.25rem 0.25rem 0.25rem 0.25rem !important;
@@ -206,6 +210,10 @@ form.order-form {
         text-align: right;
         height: 31px;
     }
+}
+
+.underline {
+    border-bottom: 1px dotted;
 }
 
 .final-row > td {

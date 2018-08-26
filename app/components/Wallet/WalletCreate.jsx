@@ -1,5 +1,5 @@
 import React, {Component} from "react";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import Translate from "react-translate-component";
 import BrainkeyInput from "components/Wallet/BrainkeyInput";
 import PasswordConfirm from "components/Wallet/PasswordConfirm";
@@ -10,6 +10,7 @@ import {connect} from "alt-react";
 import cname from "classnames";
 import SettingsActions from "actions/SettingsActions";
 import PropTypes from "prop-types";
+import {getWalletName} from "branding";
 
 class CreateNewWallet extends Component {
     static propTypes = {
@@ -40,8 +41,8 @@ class CreateNewWallet extends Component {
     }
 
     onPassword(valid_password) {
-        this.state.valid_password = valid_password;
-        this.setState({valid_password}, this.validate);
+        if (valid_password !== this.state.valid_password)
+            this.setState({valid_password}, this.validate);
     }
 
     onCustomBrainkey() {
@@ -49,7 +50,6 @@ class CreateNewWallet extends Component {
     }
 
     onBrainkey(brnkey) {
-        this.state.brnkey = brnkey;
         this.setState({brnkey}, this.validate);
     }
 
@@ -163,6 +163,7 @@ class CreateNewWallet extends Component {
                             <Translate
                                 component="p"
                                 content="wallet.create_text"
+                                wallet_name={getWalletName()}
                             />
                         ) : null}
                     </div>

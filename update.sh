@@ -9,6 +9,10 @@ get_latest_release() {
 update_master() {
     git checkout master
     git pull official master --no-edit
+    if [ $? -ne 0 ]; then
+        echo "Please fix conflict and rerun."
+        exit 1
+    fi
     git tag "$latest_release-zapata"
     docker build -t registry.dex.trading/bitshares-ui:$latest_release-zapata . 
     docker push registry.dex.trading/bitshares-ui:$latest_release-zapata
@@ -17,6 +21,10 @@ update_master() {
 update_branch() {
     git checkout $1
     git merge master --no-edit
+    if [ $? -ne 0 ]; then
+        echo "Please fix conflict and rerun."
+        exit 1
+    fi
     git tag "$latest_release-$1"
     docker build -t registry.dex.trading/bitshares-ui:$latest_release-$1 . 
     docker push registry.dex.trading/bitshares-ui:$latest_release-$1

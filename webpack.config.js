@@ -1,11 +1,20 @@
 var path = require("path");
 var webpack = require("webpack");
-var ExtractTextPlugin = require("extract-text-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 var Clean = require("clean-webpack-plugin");
+var git = require("git-rev-sync");
 require("es6-promise").polyfill();
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 var locales = require("./app/assets/locales");
-var __VERSION__ = require("./package.json").version;
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+
+/*
+* For staging builds, set the version to the latest commit hash, for
+* production set it to the package version
+*/
+let branch = !!process.env.BRANCH ? process.env.BRANCH : git.branch();
+var __VERSION__ =
+    branch === "develop" ? git.short() : require("./package.json").version;
 
 // BASE APP DIR
 var root_dir = path.resolve(__dirname);
@@ -57,8 +66,17 @@ module.exports = function(env) {
         regexString = regexString + (l + (i < locales.length - 1 ? "|" : ""));
     });
     const localeRegex = new RegExp(regexString);
+
     var plugins = [
-        new webpack.optimize.OccurrenceOrderPlugin(),
+        new HtmlWebpackPlugin({
+            template: "!!handlebars-loader!app/assets/index.hbs",
+            templateParameters: {
+                title: "BitShares " + __VERSION__,
+                INCLUDE_BASE: !!env.prod && !env.hash,
+                PRODUCTION: !!env.prod,
+                ELECTRON: !!env.electron
+            }
+        }),
         new webpack.DefinePlugin({
             APP_VERSION: JSON.stringify(__VERSION__),
             __ELECTRON__: !!env.electron,
@@ -69,7 +87,9 @@ module.exports = function(env) {
             ),
             __TESTNET__: !!env.testnet,
             __DEPRECATED__: !!env.deprecated,
-            DEFAULT_SYMBOL: "BTS"
+            DEFAULT_SYMBOL: "BTS",
+            __GIT_BRANCH__: JSON.stringify(git.branch()),
+            __PERFORMANCE_DEVTOOL__: !!env.perf_dev
         }),
         new webpack.ContextReplacementPlugin(
             /moment[\/\\]locale$/,
@@ -101,26 +121,29 @@ module.exports = function(env) {
         var cleanDirectories = [outputPath];
 
         // WRAP INTO CSS FILE
-        const extractCSS = new ExtractTextPlugin("app.css");
-        cssLoaders = ExtractTextPlugin.extract({
-            fallback: "style-loader",
-            use: [
-                {loader: "css-loader"},
-                {
-                    loader: "postcss-loader"
+        cssLoaders = [
+            {loader: MiniCssExtractPlugin.loader},
+            {loader: "css-loader"},
+            {
+                loader: "postcss-loader",
+                options: {
+                    minimize: true,
+                    debug: false
                 }
-            ]
-        });
-        scssLoaders = ExtractTextPlugin.extract({
-            fallback: "style-loader",
-            use: [
-                {loader: "css-loader"},
-                {
-                    loader: "postcss-loader"
-                },
-                {loader: "sass-loader", options: {outputStyle: "expanded"}}
-            ]
-        });
+            }
+        ];
+        scssLoaders = [
+            {loader: MiniCssExtractPlugin.loader},
+            {loader: "css-loader"},
+            {
+                loader: "postcss-loader",
+                options: {
+                    minimize: true,
+                    debug: false
+                }
+            },
+            {loader: "sass-loader", options: {outputStyle: "expanded"}}
+        ];
 
         // PROD PLUGINS
         plugins.push(new Clean(cleanDirectories, {root: root_dir}));
@@ -129,15 +152,12 @@ module.exports = function(env) {
                 __DEV__: false
             })
         );
-        plugins.push(extractCSS);
         plugins.push(
-            new webpack.LoaderOptionsPlugin({
-                minimize: true,
-                debug: false
+            new MiniCssExtractPlugin({
+                filename: "[name].[contenthash].css"
             })
         );
     } else {
-        // plugins.push(new webpack.optimize.OccurenceOrderPlugin());
         plugins.push(
             new webpack.DefinePlugin({
                 "process.env": {NODE_ENV: JSON.stringify("development")},
@@ -185,19 +205,47 @@ module.exports = function(env) {
                 : [
                       "webpack-hot-middleware/client",
                       "react-hot-loader/patch",
-                      path.resolve(root_dir, "app/Main-dev.js")
+                      path.resolve(root_dir, "app/Main.js")
                   ]
         },
         output: {
             publicPath: env.prod ? "" : "/",
             path: outputPath,
-            filename: "[name].js",
+            filename: env.prod ? "[name].[chunkhash].js" : "[name].js",
+            chunkFilename: env.prod ? "[name].[chunkhash].js" : "[name].js",
             pathinfo: !env.prod,
             sourceMapFilename: "[name].js.map"
         },
-        devtool: env.noUgly || !env.prod ? "eval" : "none",
+        optimization: {
+            splitChunks: {
+                cacheGroups: {
+                    styles: {
+                        name: "styles",
+                        test: /\.css$/,
+                        chunks: "all",
+                        enforce: true
+                    },
+                    vendor: {
+                        name: "vendor",
+                        test: /node_modules/,
+                        chunks: "initial",
+                        enforce: true
+                    }
+                }
+            }
+        },
+        devtool:
+            env.noUgly || !env.prod
+                ? "inline-cheap-module-source-map"
+                : "cheap-source-map",
         module: {
             rules: [
+                {
+                    // Test for a polyfill (or any file) and it won't be included in your
+                    // bundle
+                    test: /node-fetch/,
+                    use: "null-loader"
+                },
                 {
                     test: /\.jsx$/,
                     include: [
@@ -205,8 +253,7 @@ module.exports = function(env) {
                         path.join(
                             root_dir,
                             "node_modules/react-foundation-apps"
-                        ),
-                        path.join(root_dir, "node_modules/react-stockcharts")
+                        )
                     ],
                     use: [
                         {
@@ -234,6 +281,11 @@ module.exports = function(env) {
                             }
                         }
                     ]
+                },
+                {
+                    test: /\.mjs$/,
+                    include: /node_modules/,
+                    type: "javascript/auto"
                 },
                 {test: /\.coffee$/, loader: "coffee-loader"},
                 {
@@ -321,7 +373,23 @@ module.exports = function(env) {
                 path.resolve(root_dir, "app/lib"),
                 "node_modules"
             ],
-            extensions: [".js", ".jsx", ".coffee", ".json"]
+            extensions: [".js", ".jsx", ".coffee", ".json"],
+            mainFields: ["module", "jsnext:main", "browser", "main"],
+            alias: {
+                sanitize$: "xss",
+                moment$: path.resolve(
+                    root_dir,
+                    "node_modules/moment/moment.js"
+                ),
+                bitsharesjs$: path.resolve(
+                    root_dir,
+                    "node_modules/bitsharesjs/"
+                ),
+                "bitshares-ui-style-guide$": path.resolve(
+                    root_dir,
+                    "node_modules/bitshares-ui-style-guide/dist/main.js"
+                )
+            }
         },
         plugins: plugins
     };

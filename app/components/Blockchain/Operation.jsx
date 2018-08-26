@@ -1,6 +1,6 @@
 import React from "react";
 import FormattedAsset from "../Utility/FormattedAsset";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import classNames from "classnames";
 import Translate from "react-translate-component";
 import counterpart from "counterpart";
@@ -11,7 +11,7 @@ import LinkToAssetById from "../Utility/LinkToAssetById";
 import BindToChainState from "../Utility/BindToChainState";
 import ChainTypes from "../Utility/ChainTypes";
 import TranslateWithLinks from "../Utility/TranslateWithLinks";
-import {ChainStore, ChainTypes as grapheneChainTypes} from "bitsharesjs/es";
+import {ChainStore, ChainTypes as grapheneChainTypes} from "bitsharesjs";
 import account_constants from "chain/account_constants";
 import MemoText from "./MemoText";
 import ProposedOperation from "./ProposedOperation";
@@ -43,10 +43,6 @@ class TransactionLabel extends React.Component {
 }
 
 class Row extends React.Component {
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     static propTypes = {
         dynGlobalObject: ChainTypes.ChainObject.isRequired
     };
@@ -58,13 +54,7 @@ class Row extends React.Component {
 
     constructor(props) {
         super(props);
-        // this.showDetails = this.showDetails.bind(this);
     }
-    //
-    // showDetails(e) {
-    //     e.preventDefault();
-    //     this.context.router.push(`/block/${this.props.block}`);
-    // }
 
     shouldComponentUpdate(nextProps) {
         let {block, dynGlobalObject} = this.props;
@@ -87,10 +77,12 @@ class Row extends React.Component {
         if (!hidePending && block > last_irreversible_block_num) {
             pending = (
                 <span>
-                    (<Translate
+                    (
+                    <Translate
                         content="operation.pending"
                         blocks={block - last_irreversible_block_num}
-                    />)
+                    />
+                    )
                 </span>
             );
         }
@@ -101,6 +93,7 @@ class Row extends React.Component {
             <tr>
                 {this.props.includeOperationId ? (
                     <td style={{textAlign: "left"}}>
+                        {/* {this.props.block}#{this.props.txIndex}<br /> */}
                         {this.props.operationId}
                     </td>
                 ) : null}
@@ -121,7 +114,9 @@ class Row extends React.Component {
                                     )
                                 }
                             )}
-                            to={`/block/${this.props.block}`}
+                            to={`/block/${this.props.block}/${
+                                this.props.txIndex
+                            }`}
                         >
                             <TransactionLabel color={color} type={type} />
                         </Link>
@@ -187,7 +182,7 @@ class Operation extends React.Component {
         return utils.is_object_id(name_or_id) ? (
             <LinkToAccountById account={name_or_id} />
         ) : (
-            <Link to={`/account/${name_or_id}/overview`}>{name_or_id}</Link>
+            <Link to={`/account/${name_or_id}`}>{name_or_id}</Link>
         );
     }
 
@@ -305,6 +300,12 @@ class Operation extends React.Component {
                                 const amount = isBid
                                     ? op[1].min_to_receive
                                     : op[1].amount_to_sell;
+                                let orderId = this.props.result
+                                    ? typeof this.props.result[1] == "string"
+                                        ? "#" +
+                                          this.props.result[1].substring(4)
+                                        : ""
+                                    : "";
 
                                 return (
                                     <TranslateWithLinks
@@ -333,6 +334,9 @@ class Operation extends React.Component {
                                                 arg: "price"
                                             }
                                         ]}
+                                        params={{
+                                            order: orderId
+                                        }}
                                     />
                                 );
                             }}
@@ -776,7 +780,8 @@ class Operation extends React.Component {
                                 component="span"
                                 content="transaction.witness_pay"
                             />
-                            &nbsp;<FormattedAsset
+                            &nbsp;
+                            <FormattedAsset
                                 amount={op[1].amount}
                                 asset={"1.3.0"}
                             />
@@ -784,7 +789,8 @@ class Operation extends React.Component {
                                 component="span"
                                 content="transaction.to"
                             />
-                            &nbsp;{this.linkToAccount(op[1].witness_account)}
+                            &nbsp;
+                            {this.linkToAccount(op[1].witness_account)}
                         </span>
                     );
                 } else {
@@ -794,7 +800,8 @@ class Operation extends React.Component {
                                 component="span"
                                 content="transaction.received"
                             />
-                            &nbsp;<FormattedAsset
+                            &nbsp;
+                            <FormattedAsset
                                 amount={op[1].amount}
                                 asset={"1.3.0"}
                             />
@@ -802,7 +809,8 @@ class Operation extends React.Component {
                                 component="span"
                                 content="transaction.from"
                             />
-                            &nbsp;{this.linkToAccount(op[1].witness_account)}
+                            &nbsp;
+                            {this.linkToAccount(op[1].witness_account)}
                         </span>
                     );
                 }
@@ -821,7 +829,8 @@ class Operation extends React.Component {
                                         arg: "account"
                                     }
                                 ]}
-                            />:
+                            />
+                            :
                         </span>
                         <div>
                             {op[1].proposed_ops.map((o, index) => {
@@ -878,9 +887,11 @@ class Operation extends React.Component {
                             component="span"
                             content="transaction.withdraw_permission_create"
                         />
-                        &nbsp;{this.linkToAccount(op[1].withdraw_from_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].withdraw_from_account)}
                         <Translate component="span" content="transaction.to" />
-                        &nbsp;{this.linkToAccount(op[1].authorized_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].authorized_account)}
                     </span>
                 );
                 break;
@@ -892,9 +903,11 @@ class Operation extends React.Component {
                             component="span"
                             content="transaction.withdraw_permission_update"
                         />
-                        &nbsp;{this.linkToAccount(op[1].withdraw_from_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].withdraw_from_account)}
                         <Translate component="span" content="transaction.to" />
-                        &nbsp;{this.linkToAccount(op[1].authorized_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].authorized_account)}
                     </span>
                 );
                 break;
@@ -906,9 +919,11 @@ class Operation extends React.Component {
                             component="span"
                             content="transaction.withdraw_permission_claim"
                         />
-                        &nbsp;{this.linkToAccount(op[1].withdraw_from_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].withdraw_from_account)}
                         <Translate component="span" content="transaction.to" />
-                        &nbsp;{this.linkToAccount(op[1].withdraw_to_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].withdraw_to_account)}
                     </span>
                 );
                 break;
@@ -920,9 +935,11 @@ class Operation extends React.Component {
                             component="span"
                             content="transaction.withdraw_permission_delete"
                         />
-                        &nbsp;{this.linkToAccount(op[1].withdraw_from_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].withdraw_from_account)}
                         <Translate component="span" content="transaction.to" />
-                        &nbsp;{this.linkToAccount(op[1].authorized_account)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].authorized_account)}
                     </span>
                 );
                 break;
@@ -1004,12 +1021,7 @@ class Operation extends React.Component {
                                                     amount: receivedAmount,
                                                     asset_id: amount.asset_id
                                                 },
-                                                arg: "amount",
-                                                decimalOffset:
-                                                    op[1].receives.asset_id ===
-                                                    "1.3.0"
-                                                        ? 3
-                                                        : null
+                                                arg: "amount"
                                             },
                                             {
                                                 type: "price",
@@ -1020,6 +1032,9 @@ class Operation extends React.Component {
                                                 arg: "price"
                                             }
                                         ]}
+                                        params={{
+                                            order: o.order_id.substring(4)
+                                        }}
                                     />
                                 );
                             }}
@@ -1042,16 +1057,19 @@ class Operation extends React.Component {
             case "vesting_balance_create":
                 column = (
                     <span>
-                        &nbsp;{this.linkToAccount(op[1].creator)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].creator)}
                         <Translate
                             component="span"
                             content="transaction.vesting_balance_create"
                         />
-                        &nbsp;<FormattedAsset
+                        &nbsp;
+                        <FormattedAsset
                             amount={op[1].amount.amount}
                             asset={op[1].amount.asset_id}
                         />
-                        &nbsp;{this.linkToAccount(op[1].owner)}
+                        &nbsp;
+                        {this.linkToAccount(op[1].owner)}
                     </span>
                 );
                 break;
@@ -1140,9 +1158,8 @@ class Operation extends React.Component {
                             component="span"
                             content="transaction.committee_member_create"
                         />
-                        &nbsp;{this.linkToAccount(
-                            op[1].committee_member_account
-                        )}
+                        &nbsp;
+                        {this.linkToAccount(op[1].committee_member_account)}
                     </span>
                 );
                 break;
@@ -1151,11 +1168,13 @@ class Operation extends React.Component {
                 column = (
                     <span>
                         {this.linkToAccount(op[1].from)}
-                        &nbsp;<Translate
+                        &nbsp;
+                        <Translate
                             component="span"
                             content="transaction.sent"
                         />
-                        &nbsp;<FormattedAsset
+                        &nbsp;
+                        <FormattedAsset
                             amount={op[1].amount.amount}
                             asset={op[1].amount.asset_id}
                         />
@@ -1167,11 +1186,13 @@ class Operation extends React.Component {
                 column = (
                     <span>
                         {this.linkToAccount(op[1].to)}
-                        &nbsp;<Translate
+                        &nbsp;
+                        <Translate
                             component="span"
                             content="transaction.received"
                         />
-                        &nbsp;<FormattedAsset
+                        &nbsp;
+                        <FormattedAsset
                             amount={op[1].amount.amount}
                             asset={op[1].amount.asset_id}
                         />
@@ -1187,7 +1208,8 @@ class Operation extends React.Component {
                 );
                 column = (
                     <span>
-                        {this.linkToAccount(op[1].issuer)}&nbsp;
+                        {this.linkToAccount(op[1].issuer)}
+                        &nbsp;
                         <BindToChainState.Wrapper
                             asset={op[1].amount_to_claim.asset_id}
                         >
@@ -1301,6 +1323,56 @@ class Operation extends React.Component {
                 );
                 break;
 
+            case "asset_claim_pool":
+                column = (
+                    <TranslateWithLinks
+                        string="operation.asset_claim_pool"
+                        keys={[
+                            {
+                                type: "account",
+                                value: op[1].issuer,
+                                arg: "account"
+                            },
+                            {
+                                type: "asset",
+                                value: op[1].asset_id,
+                                arg: "asset"
+                            },
+                            {
+                                type: "amount",
+                                value: op[1].amount_to_claim,
+                                arg: "amount"
+                            }
+                        ]}
+                    />
+                );
+                break;
+
+            case "asset_update_issuer":
+                column = (
+                    <TranslateWithLinks
+                        string="operation.asset_update_issuer"
+                        keys={[
+                            {
+                                type: "account",
+                                value: op[1].issuer,
+                                arg: "from_account"
+                            },
+                            {
+                                type: "account",
+                                value: op[1].new_issuer,
+                                arg: "to_account"
+                            },
+                            {
+                                type: "asset",
+                                value: op[1].asset_to_update,
+                                arg: "asset"
+                            }
+                        ]}
+                    />
+                );
+                break;
+
             default:
                 console.log("unimplemented op:", op);
                 column = (
@@ -1336,6 +1408,7 @@ class Operation extends React.Component {
         line = column ? (
             <Row
                 operationId={this.props.operationId}
+                txIndex={this.props.txIndex}
                 includeOperationId={this.props.includeOperationId}
                 block={block}
                 type={op[0]}
@@ -1354,15 +1427,18 @@ class Operation extends React.Component {
     }
 }
 
-Operation = connect(Operation, {
-    listenTo() {
-        return [SettingsStore];
-    },
-    getProps() {
-        return {
-            marketDirections: SettingsStore.getState().marketDirections
-        };
+Operation = connect(
+    Operation,
+    {
+        listenTo() {
+            return [SettingsStore];
+        },
+        getProps() {
+            return {
+                marketDirections: SettingsStore.getState().marketDirections
+            };
+        }
     }
-});
+);
 
 export default Operation;
