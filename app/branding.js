@@ -17,7 +17,7 @@ export function getWalletName() {
  * @returns {string}
  */
 export function getWalletURL() {
-    return "https://xbto.bitshares.org";
+    return "https://xbto.dex.trading";
 }
 
 /**
