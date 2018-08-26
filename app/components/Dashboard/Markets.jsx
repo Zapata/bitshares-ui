@@ -10,109 +10,32 @@ import MarketsTable from "./MarketsTable";
 
 class StarredMarkets extends React.Component {
     render() {
-        let {starredMarkets} = this.props;
-        let markets = [];
-
-        if (starredMarkets.size) {
-            for (let market of starredMarkets.values()) {
-                markets.push([market.quote, market.base]);
-            }
-        }
-
-        return <MarketsTable markets={markets} forceDirection={true} />;
+        return (
+            <MarketsTable
+                markets={this.props.starredMarkets}
+                forceDirection={true}
+                isFavorite
+            />
+        );
     }
 }
-StarredMarkets = connect(StarredMarkets, {
-    listenTo() {
-        return [SettingsStore];
-    },
-    getProps() {
-        return {
-            starredMarkets: SettingsStore.getState().starredMarkets
-        };
+StarredMarkets = connect(
+    StarredMarkets,
+    {
+        listenTo() {
+            return [SettingsStore];
+        },
+        getProps() {
+            return {
+                starredMarkets: SettingsStore.getState().starredMarkets
+            };
+        }
     }
-});
+);
 
 class FeaturedMarkets extends React.Component {
     constructor() {
         super();
-
-        this.marketsByChain = {
-            "4018d784": [
-                ["USD", "BTS"],
-                ["USD", "OPEN.BTC"],
-                ["USD", "OPEN.USDT"],
-                ["USD", "OPEN.ETH"],
-                ["USD", "OPEN.DASH"],
-                ["USD", "GOLD"],
-                ["USD", "HERO"],
-                ["USD", "GDEX.BTC"],
-                ["USD", "GDEX.ETH"],
-                ["USD", "GDEX.EOS"],
-                ["USD", "GDEX.BTO"],
-                ["CNY", "BTS"],
-                ["CNY", "OPEN.BTC"],
-                ["CNY", "USD"],
-                ["CNY", "OPEN.ETH"],
-                ["CNY", "YOYOW"],
-                ["CNY", "OCT"],
-                ["CNY", "GDEX.BTC"],
-                ["CNY", "GDEX.ETH"],
-                ["CNY", "GDEX.EOS"],
-                ["CNY", "GDEX.BTO"],
-                ["CNY", "GDEX.BTM"],
-                ["OPEN.BTC", "BTS"],
-                ["OPEN.BTC", "OPEN.ETH"],
-                ["OPEN.BTC", "OPEN.DASH"],
-                ["OPEN.BTC", "BLOCKPAY"],
-                ["OPEN.BTC", "OPEN.DGD"],
-                ["OPEN.BTC", "OPEN.STEEM"],
-                ["BTS", "OPEN.ETH"],
-                ["BTS", "OPEN.EOS"],
-                ["BTS", "PPY"],
-                ["BTS", "OPEN.STEEM"],
-                ["BTS", "OBITS"],
-                ["BTS", "RUBLE"],
-                ["BTS", "HERO"],
-                ["BTS", "OCT"],
-                ["BTS", "SILVER"],
-                ["BTS", "GOLD"],
-                ["BTS", "BLOCKPAY"],
-                ["BTS", "BTWTY"],
-                ["BTS", "SMOKE"],
-                ["BTS", "GDEX.BTC"],
-                ["BTS", "GDEX.ETH"],
-                ["BTS", "GDEX.EOS"],
-                ["BTS", "GDEX.BTO"],
-                ["KAPITAL", "OPEN.BTC"],
-                ["USD", "OPEN.STEEM"],
-                ["USD", "OPEN.MAID"],
-                ["OPEN.USDT", "OPEN.BTC"],
-                ["OPEN.BTC", "OPEN.MAID"],
-                ["BTS", "OPEN.MAID"],
-                ["BTS", "OPEN.HEAT"],
-                ["BTS", "OPEN.INCENT"],
-                ["HEMPSWEET", "OPEN.BTC"],
-                ["KAPITAL", "BTS"],
-                ["BTS", "RUDEX.STEEM"],
-                ["USD", "RUDEX.STEEM"],
-                ["BTS", "RUDEX.SBD"],
-                ["BTS", "RUDEX.KRM"],
-                ["USD", "RUDEX.KRM"],
-                ["RUBLE", "RUDEX.GOLOS"],
-                ["CNY", "RUDEX.GOLOS"],
-                ["RUBLE", "RUDEX.GBG"],
-                ["CNY", "RUDEX.GBG"],
-                ["BTS", "RUDEX.MUSE"],
-                ["BTS", "RUDEX.TT"],
-                ["BTS", "RUDEX.SCR"],
-                ["BTS", "RUDEX.ETH"],
-                ["BTS", "RUDEX.DGB"],
-                ["BTS", "ZEPH"],
-                ["BTS", "HERTZ"]
-            ],
-            "39f5e2ed": [["TEST", "PEG.FAKEUSD"], ["TEST", "BTWTY"]]
-        };
 
         let chainID = Apis.instance().chain_id;
         if (chainID) chainID = chainID.substr(0, 8);
@@ -122,7 +45,19 @@ class FeaturedMarkets extends React.Component {
             markets: []
         };
 
+        this._getMarkets = this._getMarkets.bind(this);
         this.update = this.update.bind(this);
+    }
+
+    _getMarkets(state = this.state, props = this.props) {
+        const {chainID} = state;
+
+        if (chainID === "4018d784") {
+            return props.markets;
+        } else {
+            // assume testnet
+            return [["TEST", "PEG.FAKEUSD"], ["TEST", "BTWTY"]];
+        }
     }
 
     shouldComponentUpdate(nextProps) {
@@ -137,38 +72,61 @@ class FeaturedMarkets extends React.Component {
         this.update(nextProps);
     }
 
-    update(nextProps = null) {
-        let {lowVolumeMarkets} = nextProps || this.props;
-        let markets =
-            this.marketsByChain[this.state.chainID] ||
-            this.marketsByChain["4018d784"];
+    update(props = this.props) {
+        let markets = this._getMarkets(this.state, props);
 
-        markets = markets.filter(pair => {
-            let [first, second] = pair;
-            let isLowVolume =
-                lowVolumeMarkets.get(`${first}_${second}`) ||
-                lowVolumeMarkets.get(`${second}_${first}`);
-            return !isLowVolume;
+        markets = markets.filter(market => {
+            /* Only use markets corresponding to the current tab */
+            return props.quotes[0] === market.base;
         });
 
+        /* Add the possible gateway assets */
+        for (var i = 1; i < props.quotes.length; i++) {
+            markets.forEach(m => {
+                let obj = {quote: m.quote, base: props.quotes[i]};
+                let marketKey = `${obj.quote}_${obj.base}`;
+                if (obj.quote !== obj.base && !markets.has(marketKey)) {
+                    markets = markets.set(marketKey, obj);
+                }
+            });
+        }
         this.setState({markets});
     }
 
     render() {
-        return <MarketsTable markets={this.state.markets} />;
+        return (
+            <MarketsTable
+                markets={this.state.markets}
+                showFlip={false}
+                isFavorite={false}
+            />
+        );
     }
 }
 
-FeaturedMarkets = connect(FeaturedMarkets, {
-    listenTo() {
-        return [MarketsStore];
-    },
-    getProps() {
-        return {
-            lowVolumeMarkets: MarketsStore.getState().lowVolumeMarkets
-        };
+FeaturedMarkets = connect(
+    FeaturedMarkets,
+    {
+        listenTo() {
+            return [MarketsStore, SettingsStore];
+        },
+        getProps() {
+            let userMarkets = SettingsStore.getState().userMarkets;
+            let defaultMarkets = SettingsStore.getState().defaultMarkets;
+
+            if (userMarkets.size) {
+                userMarkets.forEach((market, key) => {
+                    if (!defaultMarkets.has(key))
+                        defaultMarkets = defaultMarkets.set(key, market);
+                });
+            }
+
+            return {
+                markets: defaultMarkets
+            };
+        }
     }
-});
+);
 
 class TopMarkets extends React.Component {
     render() {

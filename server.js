@@ -5,8 +5,10 @@ var devMiddleware = require("webpack-dev-middleware");
 var hotMiddleware = require("webpack-hot-middleware");
 var fs = require("fs");
 
+const perf_dev = process.argv[2] === "perf-dev";
+
 var ProgressPlugin = require("webpack/lib/ProgressPlugin");
-var config = require("./webpack.config.js")({prod: false});
+var config = require("./webpack.config.js")({prod: false, perf_dev});
 
 var app = express();
 var compiler = webpack(config);
@@ -34,8 +36,20 @@ app.use(
 
 app.use(hotMiddleware(compiler));
 
-app.get("*", function(req, res) {
-    res.sendFile(path.join(__dirname, "app/assets/index-dev.html"));
+// app.get("*", function(req, res) {
+//     res.sendFile(path.join(__dirname, "app/assets/index.html"));
+// });
+
+app.use("*", function(req, res, next) {
+    var filename = path.join(compiler.outputPath, "index.html");
+    compiler.outputFileSystem.readFile(filename, function(err, result) {
+        if (err) {
+            return next(err);
+        }
+        res.set("content-type", "text/html");
+        res.send(result);
+        res.end();
+    });
 });
 
 var options = {

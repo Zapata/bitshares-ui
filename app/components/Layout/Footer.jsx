@@ -10,10 +10,17 @@ import SettingsStore from "stores/SettingsStore";
 import SettingsActions from "actions/SettingsActions";
 import AccessSettings from "../Settings/AccessSettings";
 import Icon from "../Icon/Icon";
-import counterpart from "counterpart";
 import "intro.js/introjs.css";
 import guide from "intro.js";
 import PropTypes from "prop-types";
+import {routerTransitioner} from "../../routerTransition";
+import LoadingIndicator from "../LoadingIndicator";
+import counterpart from "counterpart";
+import ChoiceModal from "../Modal/ChoiceModal";
+import ZfApi from "react-foundation-apps/src/utils/foundation-api";
+import {ChainStore} from "bitsharesjs";
+import ifvisible from "ifvisible";
+import {getWalletName} from "branding";
 
 class Footer extends React.Component {
     static propTypes = {
@@ -25,22 +32,31 @@ class Footer extends React.Component {
         dynGlobalObject: "2.1.0"
     };
 
-    static contextTypes = {
-        router: PropTypes.object
-    };
-
     constructor(props) {
         super(props);
 
         this.state = {
-            showNodesPopup: false
+            showNodesPopup: false,
+            showConnectingPopup: false
         };
+
+        this.confirmOutOfSync = {
+            modal: null,
+            shownOnce: false
+        };
+
+        this.getNode = this.getNode.bind(this);
     }
 
     componentDidMount() {
         this.checkNewVersionAvailable.call(this);
 
         this.downloadLink = "https://bitshares.org/download";
+
+        let ensure = this._ensureConnectivity.bind(this);
+        ifvisible.on("wakeup", function() {
+            ensure();
+        });
     }
 
     shouldComponentUpdate(nextProps, nextState) {
@@ -66,7 +82,9 @@ class Footer extends React.Component {
                     function(json) {
                         let oldVersion = String(json.tag_name);
                         let newVersion = String(APP_VERSION);
-                        if (oldVersion !== newVersion) {
+                        let isReleaseCandidate =
+                            APP_VERSION.indexOf("rc") !== -1;
+                        if (!isReleaseCandidate && oldVersion !== newVersion) {
                             this.setState({newVersion});
                         }
                     }.bind(this)
@@ -92,10 +110,7 @@ class Footer extends React.Component {
         var theme = SettingsStore.getState().settings.get("themes");
 
         if (hintData.length == 0) {
-            window.open(
-                "http://docs.bitshares.org/bitshares/user/index.html",
-                "_blank"
-            );
+            this.props.history.push("/help");
         } else {
             guide
                 .introJs()
@@ -131,16 +146,157 @@ class Footer extends React.Component {
         return currentNode;
     }
 
-    getNode(node) {
+    getNode(node = {url: "", operator: ""}) {
         const {props} = this;
 
+        let title = node.operator + " " + !!node.location ? node.location : "";
+        if ("country" in node) {
+            title = node.country + (!!title ? " - " + title : "");
+        }
+
         return {
-            name: node.location || "Unknown location",
+            name: title,
             url: node.url,
-            up: node.url in props.apiLatencies,
-            ping: props.apiLatencies[node.url],
-            hidden: !!node.hidden
+            ping: props.apiLatencies[node.url]
         };
+    }
+
+    /**
+     * Returns the current blocktime, or exception if not yet available
+     * @returns {Date}
+     */
+    getBlockTime() {
+        let dynGlobalObject = ChainStore.getObject("2.1.0");
+        if (dynGlobalObject) {
+            let block_time = dynGlobalObject.get("time");
+            if (!/Z$/.test(block_time)) {
+                block_time += "Z";
+            }
+            return new Date(block_time);
+        } else {
+            throw new Error("Blocktime not available right now");
+        }
+    }
+
+    /**
+     * Returns the delta between the current time and the block time in seconds, or -1 if block time not available yet
+     *
+     * Note: Could be integrating properly with BlockchainStore to send out updates, but not necessary atp
+     */
+    getBlockTimeDelta() {
+        try {
+            let bt =
+                (this.getBlockTime().getTime() +
+                    ChainStore.getEstimatedChainTimeOffset()) /
+                1000;
+            let now = new Date().getTime() / 1000;
+            return Math.abs(now - bt);
+        } catch (err) {
+            console.log(err);
+            return -1;
+        }
+    }
+
+    /**
+     * Closes the out of sync modal if closed
+     *
+     * @private
+     */
+    _closeOutOfSyncModal() {
+        if (
+            !!this.confirmOutOfSync.modal &&
+            this.confirmOutOfSync.modal.state.show
+        ) {
+            ZfApi.publish(this.confirmOutOfSync.modal.props.modalId, "close");
+        }
+    }
+
+    /**
+     * This method can be called whenever it is assumed that the connection is stale.
+     * It will check synced/connected state and notify the user or do automatic reconnect.
+     * In general the connection state can be "out of sync" and "disconnected".
+     *
+     * disconnected:
+     *      - dependent on rpc_connection_status of BlockchainStore
+     *
+     * out of sync:
+     *      - reported block time is more than X sec in the past, as reported in
+     *        App -> _syncStatus
+     *
+     * @private
+     */
+    _ensureConnectivity() {
+        // user is not looking at the app, no reconnection effort necessary
+        if (!ifvisible.now("active")) return;
+
+        let connected = !(this.props.rpc_connection_status === "closed");
+
+        if (!connected) {
+            console.log("Your connection was lost");
+            this._triggerReconnect();
+        } else if (!this.props.synced) {
+            // If the blockchain is out of sync the footer will be rerendered one last time and then
+            // not receive anymore blocks, meaning no rerender. Thus we need to trigger any and all
+            // handling out of sync state within this one call
+
+            let forceReconnectAfterSeconds = this._getForceReconnectAfterSeconds();
+            let askToReconnectAfterSeconds = 10;
+
+            // Trigger automatic reconnect after X seconds
+            setTimeout(() => {
+                if (!this.props.synced) {
+                    this._triggerReconnect();
+                }
+            }, forceReconnectAfterSeconds * 1000);
+
+            // Still out of sync?
+            if (this.getBlockTimeDelta() > 3) {
+                console.log(
+                    "Your node is out of sync since " +
+                        this.getBlockTimeDelta() +
+                        " seconds, waiting " +
+                        askToReconnectAfterSeconds +
+                        " seconds, then we notify you"
+                );
+                setTimeout(() => {
+                    // Only ask the user once, and only continue if still out of sync
+                    if (
+                        this.getBlockTimeDelta() > 3 &&
+                        this.confirmOutOfSync.shownOnce == false
+                    ) {
+                        this.confirmOutOfSync.shownOnce = true;
+                        this.confirmOutOfSync.modal.show();
+                    }
+                }, askToReconnectAfterSeconds * 1000);
+            }
+        } else {
+            this._closeOutOfSyncModal();
+            this.confirmOutOfSync.shownOnce = false;
+        }
+    }
+
+    _getForceReconnectAfterSeconds() {
+        return 60;
+    }
+
+    _triggerReconnect(honorManualSelection = true) {
+        if (honorManualSelection && !routerTransitioner.isAutoSelection()) {
+            return;
+        }
+        if (!routerTransitioner.isTransitionInProgress()) {
+            this._closeOutOfSyncModal();
+            console.log("Trying to reconnect ...");
+
+            // reconnect to anythin
+            let promise = routerTransitioner.willTransitionTo(false);
+            if (!!promise)
+                setTimeout(() => {
+                    this.forceUpdate();
+                }, 10);
+            promise.then(() => {
+                console.log("... done trying to reconnect");
+            });
+        }
     }
 
     render() {
@@ -151,15 +307,13 @@ class Footer extends React.Component {
 
         // Current Node Details
         let nodes = this.props.defaults.apiServer;
-        let getNode = this.getNode.bind(this);
+
         let currentNodeIndex = this.getCurrentNodeIndex.call(this);
-
-        let activeNode = getNode(nodes[currentNodeIndex] || nodes[0]);
-
+        let activeNode = this.getNode(nodes[currentNodeIndex] || nodes[0]);
         if (activeNode.url == autoSelectAPI) {
             let nodeUrl = props.activeNode;
             currentNodeIndex = this.getNodeIndexByURL.call(this, nodeUrl);
-            activeNode = getNode(nodes[currentNodeIndex]);
+            activeNode = this.getNode(nodes[currentNodeIndex]);
         }
 
         let block_height = this.props.dynGlobalObject.get("head_block_number");
@@ -167,11 +321,74 @@ class Footer extends React.Component {
         let version = version_match
             ? `.${version_match[1]}`
             : ` ${APP_VERSION}`;
+        let rc_match = APP_VERSION.match(/-rc[0-9]$/);
+        if (rc_match) version += rc_match[0];
         let updateStyles = {display: "inline-block", verticalAlign: "top"};
         let logoProps = {};
 
+        this._ensureConnectivity();
+
         return (
             <div>
+                {!!routerTransitioner &&
+                    routerTransitioner.isTransitionInProgress() && (
+                        <LoadingIndicator
+                            loadingText={routerTransitioner.getTransitionTarget()}
+                        />
+                    )}
+                <ChoiceModal
+                    modalId="footer_out_of_sync"
+                    ref={thiz => {
+                        this.confirmOutOfSync.modal = thiz;
+                    }}
+                    choices={[
+                        {
+                            translationKey: "connection.manual_reconnect",
+                            callback: () => {
+                                if (!this.props.synced) {
+                                    this._triggerReconnect(false);
+                                }
+                            }
+                        },
+                        {
+                            translationKey: "connection.manual_ping",
+                            callback: () => {
+                                if (!this.props.synced) {
+                                    this.onAccess();
+                                }
+                            }
+                        }
+                    ]}
+                >
+                    <div>
+                        <Translate
+                            content="connection.title_out_of_sync"
+                            out_of_sync_seconds={parseInt(
+                                this.getBlockTimeDelta()
+                            )}
+                            component="h2"
+                        />
+                        <br />
+                        <br />
+                        <Translate
+                            content="connection.out_of_sync"
+                            out_of_sync_seconds={parseInt(
+                                this.getBlockTimeDelta()
+                            )}
+                        />
+                        <br />
+                        <br />
+                        <Translate content="connection.want_to_reconnect" />
+                        {routerTransitioner.isAutoSelection() && (
+                            <Translate
+                                content="connection.automatic_reconnect"
+                                reconnect_in_seconds={parseInt(
+                                    this._getForceReconnectAfterSeconds()
+                                )}
+                            />
+                        )}
+                    </div>
+                </ChoiceModal>
                 <div className="show-for-medium grid-block shrink footer">
                     <div className="align-justify grid-block">
                         <div className="grid-block">
@@ -199,7 +416,10 @@ class Footer extends React.Component {
                                 {state.newVersion && (
                                     <Icon
                                         name="download"
-                                        title="icons.download"
+                                        title={counterpart.translate(
+                                            "icons.download",
+                                            {wallet_name: getWalletName()}
+                                        )}
                                         style={{
                                             marginRight: "20px",
                                             marginTop: "10px",
@@ -209,8 +429,24 @@ class Footer extends React.Component {
                                     />
                                 )}
                                 <span style={updateStyles}>
-                                    <Translate content="footer.title" />
-                                    <span className="version">{version}</span>
+                                    <Translate
+                                        content="footer.title"
+                                        wallet_name={getWalletName()}
+                                    />
+                                    {__GIT_BRANCH__ === "staging" ? (
+                                        <a
+                                            href={`https://github.com/bitshares/bitshares-ui/commit/${version.trim()}`}
+                                            className="version"
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                        >
+                                            {version}
+                                        </a>
+                                    ) : (
+                                        <span className="version">
+                                            {version}
+                                        </span>
+                                    )}
                                 </span>
 
                                 {state.newVersion && (
@@ -228,14 +464,14 @@ class Footer extends React.Component {
                         </div>
                         {synced ? null : (
                             <div className="grid-block shrink txtlabel cancel">
-                                <Translate content="footer.nosync" />&nbsp;
-                                &nbsp;
+                                <Translate content="footer.nosync" />
+                                &nbsp; &nbsp;
                             </div>
                         )}
                         {!connected ? (
                             <div className="grid-block shrink txtlabel error">
-                                <Translate content="footer.connection" />&nbsp;
-                                &nbsp;
+                                <Translate content="footer.connection" />
+                                &nbsp; &nbsp;
                             </div>
                         ) : null}
                         {this.props.backup_recommended ? (
@@ -271,13 +507,16 @@ class Footer extends React.Component {
                         {block_height ? (
                             <div className="grid-block shrink">
                                 <div
-                                    onMouseEnter={() => {
-                                        this.setState({showNodesPopup: true});
+                                    onClick={() => {
+                                        this.setState({
+                                            showNodesPopup: !this.state
+                                                .showNodesPopup
+                                        });
                                     }}
-                                    onMouseLeave={() => {
-                                        this.setState({showNodesPopup: false});
+                                    style={{
+                                        position: "relative",
+                                        cursor: "pointer"
                                     }}
-                                    style={{position: "relative"}}
                                 >
                                     <div className="footer-status">
                                         {!connected ? (
@@ -295,16 +534,18 @@ class Footer extends React.Component {
                                             <span className="footer-block-title">
                                                 <Translate content="footer.latency" />
                                             </span>
-                                            &nbsp;{!connected
+                                            &nbsp;
+                                            {!connected
                                                 ? "-"
                                                 : !activeNode.ping
                                                     ? "-"
-                                                    : activeNode.ping +
-                                                      "ms"}&nbsp;/&nbsp;
+                                                    : activeNode.ping + "ms"}
+                                            &nbsp;/&nbsp;
                                             <span className="footer-block-title">
                                                 <Translate content="footer.block" />
                                             </span>
-                                            &nbsp;#{block_height}
+                                            &nbsp;#
+                                            {block_height}
                                         </span>
                                     </div>
                                 </div>
@@ -327,9 +568,6 @@ class Footer extends React.Component {
                     </div>
                 </div>
                 <div
-                    onMouseEnter={() => {
-                        this.setState({showNodesPopup: true});
-                    }}
                     onMouseLeave={() => {
                         this.setState({showNodesPopup: false});
                     }}
@@ -359,11 +597,11 @@ class Footer extends React.Component {
     }
 
     onBackup() {
-        this.context.router.push("/wallet/backup/create");
+        this.props.history.push("/wallet/backup/create");
     }
 
     onBackupBrainkey() {
-        this.context.router.push("/wallet/backup/brainkey");
+        this.props.history.push("/wallet/backup/brainkey");
     }
 
     onPopup() {
@@ -374,7 +612,7 @@ class Footer extends React.Component {
 
     onAccess() {
         SettingsActions.changeViewSetting({activeSetting: 6});
-        this.context.router.push("/settings/access");
+        this.props.history.push("/settings/access");
     }
 }
 Footer = BindToChainState(Footer);

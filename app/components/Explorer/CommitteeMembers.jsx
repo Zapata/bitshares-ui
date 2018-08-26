@@ -3,27 +3,23 @@ import Immutable from "immutable";
 import AccountImage from "../Account/AccountImage";
 import ChainTypes from "../Utility/ChainTypes";
 import BindToChainState from "../Utility/BindToChainState";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import FormattedAsset from "../Utility/FormattedAsset";
 import Translate from "react-translate-component";
 import {connect} from "alt-react";
 import SettingsActions from "actions/SettingsActions";
 import SettingsStore from "stores/SettingsStore";
-import Explorer from "./Explorer";
-import PropTypes from "prop-types";
+import {withRouter} from "react-router-dom";
+import sanitize from "sanitize";
 
 class CommitteeMemberCard extends React.Component {
     static propTypes = {
         committee_member: ChainTypes.ChainAccount.isRequired
     };
 
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     _onCardClick(e) {
         e.preventDefault();
-        this.context.router.push(
+        this.props.history.push(
             `/account/${this.props.committee_member.get("name")}`
         );
     }
@@ -74,19 +70,16 @@ class CommitteeMemberCard extends React.Component {
     }
 }
 CommitteeMemberCard = BindToChainState(CommitteeMemberCard);
+CommitteeMemberCard = withRouter(CommitteeMemberCard);
 
 class CommitteeMemberRow extends React.Component {
     static propTypes = {
         committee_member: ChainTypes.ChainAccount.isRequired
     };
 
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     _onRowClick(e) {
         e.preventDefault();
-        this.context.router.push(
+        this.props.history.push(
             `/account/${this.props.committee_member.get("name")}`
         );
     }
@@ -99,6 +92,10 @@ class CommitteeMemberRow extends React.Component {
         if (!committee_member_data) return null;
 
         let url = committee_member_data.get("url");
+        url = sanitize(url, {
+            whiteList: [], // empty, means filter out all tags
+            stripIgnoreTag: true // filter out all HTML not in the whilelist
+        });
         url =
             url && url.length > 0 && url.indexOf("http") === -1
                 ? "http://" + url
@@ -126,6 +123,7 @@ class CommitteeMemberRow extends React.Component {
     }
 }
 CommitteeMemberRow = BindToChainState(CommitteeMemberRow);
+CommitteeMemberRow = withRouter(CommitteeMemberRow);
 
 class CommitteeMemberList extends React.Component {
     static propTypes = {
@@ -365,13 +363,14 @@ class CommitteeMembers extends React.Component {
             }
         }
 
-        let content = (
+        return (
             <div className="grid-block">
                 <div className="grid-block vertical medium-horizontal">
                     <div className="grid-block shrink">
                         <div className="grid-content">
                             <h5>
-                                <Translate content="explorer.committee_members.active" />:{" "}
+                                <Translate content="explorer.committee_members.active" />
+                                :{" "}
                                 {
                                     Object.keys(
                                         globalObject.active_committee_members
@@ -421,8 +420,6 @@ class CommitteeMembers extends React.Component {
                 </div>
             </div>
         );
-
-        return <Explorer tab="committee_members" content={content} />;
     }
 }
 CommitteeMembers = BindToChainState(CommitteeMembers);
@@ -433,20 +430,23 @@ class CommitteeMembersStoreWrapper extends React.Component {
     }
 }
 
-CommitteeMembersStoreWrapper = connect(CommitteeMembersStoreWrapper, {
-    listenTo() {
-        return [SettingsStore];
-    },
-    getProps() {
-        return {
-            cardView: SettingsStore.getState().viewSettings.get(
-                "cardViewCommittee"
-            ),
-            filterCommitteeMember: SettingsStore.getState().viewSettings.get(
-                "filterCommitteeMember"
-            )
-        };
+CommitteeMembersStoreWrapper = connect(
+    CommitteeMembersStoreWrapper,
+    {
+        listenTo() {
+            return [SettingsStore];
+        },
+        getProps() {
+            return {
+                cardView: SettingsStore.getState().viewSettings.get(
+                    "cardViewCommittee"
+                ),
+                filterCommitteeMember: SettingsStore.getState().viewSettings.get(
+                    "filterCommitteeMember"
+                )
+            };
+        }
     }
-});
+);
 
 export default CommitteeMembersStoreWrapper;

@@ -3,7 +3,7 @@ import Immutable from "immutable";
 import AccountImage from "../Account/AccountImage";
 import ChainTypes from "../Utility/ChainTypes";
 import BindToChainState from "../Utility/BindToChainState";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import FormattedAsset from "../Utility/FormattedAsset";
 import Translate from "react-translate-component";
 import TimeAgo from "../Utility/TimeAgo";
@@ -11,8 +11,7 @@ import {connect} from "alt-react";
 import SettingsActions from "actions/SettingsActions";
 import SettingsStore from "stores/SettingsStore";
 import classNames from "classnames";
-import Explorer from "./Explorer";
-import PropTypes from "prop-types";
+import {withRouter} from "react-router-dom";
 
 require("./witnesses.scss");
 
@@ -21,13 +20,9 @@ class WitnessCard extends React.Component {
         witness: ChainTypes.ChainAccount.isRequired
     };
 
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     _onCardClick(e) {
         e.preventDefault();
-        this.context.router.push(`/account/${this.props.witness.get("name")}`);
+        this.props.history.push(`/account/${this.props.witness.get("name")}`);
     }
 
     render() {
@@ -104,19 +99,16 @@ class WitnessCard extends React.Component {
     }
 }
 WitnessCard = BindToChainState(WitnessCard);
+WitnessCard = withRouter(WitnessCard);
 
 class WitnessRow extends React.Component {
     static propTypes = {
         witness: ChainTypes.ChainAccount.isRequired
     };
 
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     _onRowClick(e) {
         e.preventDefault();
-        this.context.router.push(`/account/${this.props.witness.get("name")}`);
+        this.props.history.push(`/account/${this.props.witness.get("name")}`);
     }
 
     // componentWillUnmount() {
@@ -180,6 +172,7 @@ class WitnessRow extends React.Component {
     }
 }
 WitnessRow = BindToChainState(WitnessRow);
+WitnessRow = withRouter(WitnessRow);
 
 class WitnessList extends React.Component {
     static propTypes = {
@@ -436,7 +429,7 @@ class Witnesses extends React.Component {
             );
         }
 
-        let content = (
+        return (
             <div className="grid-block">
                 <div className="grid-block">
                     <div className="grid-block vertical small-5 medium-3">
@@ -570,7 +563,6 @@ class Witnesses extends React.Component {
                 </div>
             </div>
         );
-        return <Explorer tab="witnesses" content={content} />;
     }
 }
 Witnesses = BindToChainState(Witnesses);
@@ -581,18 +573,21 @@ class WitnessStoreWrapper extends React.Component {
     }
 }
 
-WitnessStoreWrapper = connect(WitnessStoreWrapper, {
-    listenTo() {
-        return [SettingsStore];
-    },
-    getProps() {
-        return {
-            cardView: SettingsStore.getState().viewSettings.get("cardView"),
-            filterWitness: SettingsStore.getState().viewSettings.get(
-                "filterWitness"
-            )
-        };
+WitnessStoreWrapper = connect(
+    WitnessStoreWrapper,
+    {
+        listenTo() {
+            return [SettingsStore];
+        },
+        getProps() {
+            return {
+                cardView: SettingsStore.getState().viewSettings.get("cardView"),
+                filterWitness: SettingsStore.getState().viewSettings.get(
+                    "filterWitness"
+                )
+            };
+        }
     }
-});
+);
 
 export default WitnessStoreWrapper;

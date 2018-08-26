@@ -4,7 +4,7 @@ import classnames from "classnames";
 import AssetActions from "actions/AssetActions";
 import HelpContent from "../Utility/HelpContent";
 import utils from "common/utils";
-import {ChainStore, ChainValidation} from "bitsharesjs/es";
+import {ChainStore, ChainValidation} from "bitsharesjs";
 import FormattedAsset from "../Utility/FormattedAsset";
 import counterpart from "counterpart";
 import ChainTypes from "../Utility/ChainTypes";
@@ -56,8 +56,9 @@ class BitAssetOptions extends React.Component {
                     !asset.getIn(["bitasset", "is_prediction_market"]))
             ) {
                 if (
+                    this.props.isPredictionMarket &&
                     asset.get("precision") !==
-                    parseInt(this.props.assetPrecision, 10)
+                        parseInt(this.props.assetPrecision, 10)
                 ) {
                     this.setState({
                         error: counterpart.translate(
@@ -477,7 +478,7 @@ class AccountAssetCreate extends React.Component {
                 // Enforce uppercase
                 const symbol = target.value.toUpperCase();
                 // Enforce characters
-                let regexp = new RegExp("^[.A-Z]+$");
+                let regexp = new RegExp("^[.A-Z0-9]+$");
                 if (symbol !== "" && !regexp.test(symbol)) {
                     break;
                 }
@@ -712,7 +713,8 @@ class AccountAssetCreate extends React.Component {
                             <td style={{border: "none", width: "80%"}}>
                                 <Translate
                                     content={`account.user_issued_assets.${key}`}
-                                />:
+                                />
+                                :
                             </td>
                             <td style={{border: "none"}}>
                                 <div
@@ -766,7 +768,8 @@ class AccountAssetCreate extends React.Component {
                             <td style={{border: "none", width: "80%"}}>
                                 <Translate
                                     content={`account.user_issued_assets.${key}`}
-                                />:
+                                />
+                                :
                             </td>
                             <td style={{border: "none"}}>
                                 <div
@@ -900,7 +903,8 @@ class AccountAssetCreate extends React.Component {
                                                         content={
                                                             "account.user_issued_assets.mpa"
                                                         }
-                                                    />:
+                                                    />
+                                                    :
                                                 </td>
                                                 <td style={{border: "none"}}>
                                                     <div
@@ -937,7 +941,8 @@ class AccountAssetCreate extends React.Component {
                                                             content={
                                                                 "account.user_issued_assets.pm"
                                                             }
-                                                        />:
+                                                        />
+                                                        :
                                                     </td>
                                                     <td
                                                         style={{border: "none"}}
@@ -1073,9 +1078,8 @@ class AccountAssetCreate extends React.Component {
                                                 </span>
                                                 <span>
                                                     {" "}
-                                                    {update.symbol}/{core.get(
-                                                        "symbol"
-                                                    )}
+                                                    {update.symbol}/
+                                                    {core.get("symbol")}
                                                 </span>
                                             </h5>
                                         </div>
@@ -1093,8 +1097,8 @@ class AccountAssetCreate extends React.Component {
                                     </div>
                                     {
                                         <p>
-                                            <Translate content="account.user_issued_assets.approx_fee" />:{" "}
-                                            {createFee}
+                                            <Translate content="account.user_issued_assets.approx_fee" />
+                                            : {createFee}
                                         </p>
                                     }
                                 </div>
@@ -1211,6 +1215,9 @@ class AccountAssetCreate extends React.Component {
                                         }
                                         assetPrecision={update.precision}
                                         assetSymbol={update.symbol}
+                                        isPredictionMarket={
+                                            is_prediction_market
+                                        }
                                     />
                                 </Tab>
                             ) : null}
@@ -1254,7 +1261,8 @@ class AccountAssetCreate extends React.Component {
                                                                 width: "80%"
                                                             }}
                                                         >
-                                                            <Translate content="account.user_issued_assets.charge_market_fee" />:
+                                                            <Translate content="account.user_issued_assets.charge_market_fee" />
+                                                            :
                                                         </td>
                                                         <td
                                                             style={{

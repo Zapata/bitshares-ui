@@ -2,8 +2,9 @@ import React from "react";
 import {zipObject} from "lodash-es";
 import counterpart from "counterpart";
 import utils from "common/utils";
-import {withRouter} from "react-router";
+import {withRouter} from "react-router-dom";
 import PropTypes from "prop-types";
+import sanitize from "sanitize";
 
 let req = require.context("../../help", true, /\.md/);
 let HelpData = {};
@@ -29,6 +30,11 @@ function split_into_sections(str) {
 
 function adjust_links(str) {
     return str.replace(/\<a\shref\=\"(.+?)\"/gi, (match, text) => {
+        text = sanitize(text, {
+            whiteList: [], // empty, means filter out all tags
+            stripIgnoreTag: true // filter out all HTML not in the whilelist
+        });
+
         if (text.indexOf((__HASH_HISTORY__ ? "#" : "") + "/") === 0)
             return `<a href="${text}" onclick="_onClickLink(event)"`;
         if (text.indexOf("http") === 0)
@@ -60,8 +66,7 @@ class HelpContent extends React.Component {
         let locale = this.props.locale || counterpart.getLocale() || "en";
 
         // Only load helpData for the current locale as well as the fallback 'en'
-        req
-            .keys()
+        req.keys()
             .filter(a => {
                 return (
                     a.indexOf(`/${locale}/`) !== -1 || a.indexOf("/en/") !== -1
@@ -85,7 +90,7 @@ class HelpContent extends React.Component {
             .filter(p => p && p !== "#");
         if (path.length === 0) return false;
         let route = "/" + path.join("/");
-        this.props.router.push(route);
+        this.props.history.push(route);
         return false;
     }
 
@@ -97,6 +102,11 @@ class HelpContent extends React.Component {
         return str.replace(/(\{.+?\})/gi, (match, text) => {
             let key = text.substr(1, text.length - 2);
             let value = this.props[key] !== undefined ? this.props[key] : text;
+            if (value && typeof value === "string")
+                value = sanitize(value, {
+                    whiteList: [], // empty, means filter out all tags
+                    stripIgnoreTag: true // filter out all HTML not in the whilelist
+                });
             if (value.amount && value.asset)
                 value = utils.format_asset(
                     value.amount,
@@ -106,13 +116,13 @@ class HelpContent extends React.Component {
                 );
             if (value.date) value = utils.format_date(value.date);
             if (value.time) value = utils.format_time(value.time);
+
             return value;
         });
     }
 
     render() {
         let locale = this.props.locale || counterpart.getLocale() || "en";
-
         if (!HelpData[locale]) {
             console.error(
                 `missing locale '${locale}' help files, rolling back to 'en'`
@@ -161,7 +171,16 @@ class HelpContent extends React.Component {
         }
 
         if (this.props.section) {
-            value = value[this.props.section];
+            /* The previously used remarkable-loader parsed the md properly as an object, the new one does not */
+            for (let key in value) {
+                if (!!key.match(this.props.section)) {
+                    value = key.replace(
+                        new RegExp("^" + this.props.section + ","),
+                        ""
+                    );
+                    break;
+                }
+            }
         }
 
         if (!value) {

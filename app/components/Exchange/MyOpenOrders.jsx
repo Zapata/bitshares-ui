@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import {Link} from "react-router";
+import {Link} from "react-router-dom";
 import counterpart from "counterpart";
 import Ps from "perfect-scrollbar";
 import OpenSettleOrders from "./OpenSettleOrders";
@@ -12,7 +12,7 @@ import SettingsActions from "actions/SettingsActions";
 import AssetName from "../Utility/AssetName";
 import cnames from "classnames";
 import Icon from "../Icon/Icon";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import {LimitOrder, CallOrder} from "common/MarketClasses";
 import {EquivalentValueComponent} from "../Utility/EquivalentValueComponent";
 import {MarketPrice} from "../Utility/MarketPrice";
@@ -65,31 +65,31 @@ class TableHeader extends React.Component {
                 </tr>
             </thead>
         ) : (
-            <thead>
-                <tr>
-                    <th style={leftAlign} colSpan="5">
-                        <Translate content="exchange.description" />
+            <tr>
+                {isMyAccount ? (
+                    <th id="cancelAllOrders" style={{cursor: "pointer"}}>
+                        <Translate content="wallet.cancel" />
                     </th>
-                    <th style={leftAlign}>
-                        <Translate content="exchange.price" />
-                    </th>
-                    <th style={leftAlign}>
-                        <Translate content="exchange.price_market" />
-                    </th>
-                    <th style={{textAlign: "right"}}>
-                        <Translate content="exchange.value" />
-                    </th>
-                    {/* <th><Translate content="transaction.expiration" /></th> */}
-                    <th>
-                        <Translate content="account.trade" />
-                    </th>
-                    {isMyAccount ? (
-                        <th id="cancelAllOrders" style={{cursor: "pointer"}}>
-                            <Translate content="wallet.cancel" />
-                        </th>
-                    ) : null}
-                </tr>
-            </thead>
+                ) : null}
+                <th>
+                    <Translate content="account.trade" />
+                </th>
+                <th style={leftAlign}>
+                    <Translate content="transaction.order_id" />
+                </th>
+                <th style={leftAlign} colSpan="4">
+                    <Translate content="exchange.description" />
+                </th>
+                <th style={leftAlign}>
+                    <Translate content="exchange.price" />
+                </th>
+                <th style={leftAlign}>
+                    <Translate content="exchange.price_market" />
+                </th>
+                <th style={{textAlign: "right"}}>
+                    <Translate content="exchange.value" />
+                </th>
+            </tr>
         );
     }
 }
@@ -168,7 +168,7 @@ class OrderRow extends React.Component {
                 <td
                     style={{width: "25%", textAlign: "right"}}
                     className="tooltip"
-                    data-tip={new Date(order.expiration)}
+                    data-tip={order.expiration.toLocaleString()}
                 >
                     {isCall
                         ? null
@@ -195,7 +195,37 @@ class OrderRow extends React.Component {
             </tr>
         ) : (
             <tr key={order.id} className="clickable">
-                <td colSpan="5" style={leftAlign} onClick={this.props.onFlip}>
+                {isMyAccount ? (
+                    <td className="text-center">
+                        {isCall ? null : (
+                            <span
+                                style={{marginRight: 0}}
+                                className="order-cancel"
+                            >
+                                <input
+                                    type="checkbox"
+                                    className="orderCancel"
+                                    onChange={this.props.onCheckCancel}
+                                />
+                            </span>
+                        )}
+                    </td>
+                ) : null}
+                <td>
+                    <Link
+                        to={`/market/${quote.get("symbol")}_${base.get(
+                            "symbol"
+                        )}`}
+                    >
+                        <Icon
+                            name="trade"
+                            title="icons.trade.trade"
+                            className="icon-14px"
+                        />
+                    </Link>
+                </td>
+                <td style={leftAlign}>#{order.id.substring(4)}</td>
+                <td colSpan="4" style={leftAlign} onClick={this.props.onFlip}>
                     {isBid ? (
                         <Translate
                             content="exchange.buy_description"
@@ -301,41 +331,6 @@ class OrderRow extends React.Component {
                     />{" "}
                     <AssetName name={preferredUnit} />
                 </td>
-                {/* <td>
-                    {isCall ? null : <FormattedDate
-                        value={order.expiration}
-                        format="short"
-                    />}
-                    </td> */}
-                <td>
-                    <Link
-                        to={`/market/${quote.get("symbol")}_${base.get(
-                            "symbol"
-                        )}`}
-                    >
-                        <Icon
-                            name="trade"
-                            title="icons.trade.trade"
-                            className="icon-14px"
-                        />
-                    </Link>
-                </td>
-                {isMyAccount ? (
-                    <td className="text-center" style={{padding: "2px 5px"}}>
-                        {isCall ? null : (
-                            <span
-                                style={{marginRight: 0}}
-                                className="order-cancel"
-                            >
-                                <input
-                                    type="checkbox"
-                                    className="orderCancel"
-                                    onChange={this.props.onCheckCancel}
-                                />
-                            </span>
-                        )}
-                    </td>
-                ) : null}
             </tr>
         );
     }
@@ -579,7 +574,7 @@ class MyOpenOrders extends React.Component {
             >
                 <div
                     className="exchange-bordered small-12"
-                    style={{height: 266}}
+                    style={{height: "auto", minHeight: 266}}
                 >
                     <div className="grid-block shrink left-orderbook-header">
                         <div

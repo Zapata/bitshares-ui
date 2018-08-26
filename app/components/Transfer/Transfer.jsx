@@ -11,7 +11,7 @@ import counterpart from "counterpart";
 import TransactionConfirmStore from "stores/TransactionConfirmStore";
 import {RecentTransactions} from "../Account/RecentTransactions";
 import Immutable from "immutable";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import {connect} from "alt-react";
 import {
     checkFeeStatusAsync,
@@ -21,12 +21,13 @@ import {
 import {debounce, isNaN} from "lodash-es";
 import classnames from "classnames";
 import {Asset} from "common/MarketClasses";
+import queryString from "query-string";
 
 class Transfer extends React.Component {
     constructor(props) {
         super(props);
         let state = Transfer.getInitialState();
-        let {query} = this.props.location;
+        let query = queryString.parse(props.location.search) || {};
 
         if (query.from) {
             state.from_name = query.from;
@@ -426,9 +427,11 @@ class Transfer extends React.Component {
             from_error = (
                 <span>
                     {counterpart.translate("account.errors.not_yours")}
-                    &nbsp;(<a onClick={this.onPropose.bind(this, true)}>
+                    &nbsp;(
+                    <a onClick={this.onPropose.bind(this, true)}>
                         {counterpart.translate("propose")}
-                    </a>)
+                    </a>
+                    )
                 </span>
             );
         }
@@ -462,7 +465,8 @@ class Transfer extends React.Component {
                         <Translate
                             component="span"
                             content="transfer.available"
-                        />:{" "}
+                        />
+                        :{" "}
                         <BalanceComponent
                             balance={account_balances[current_asset_id]}
                         />
@@ -728,15 +732,18 @@ class Transfer extends React.Component {
     }
 }
 
-export default connect(Transfer, {
-    listenTo() {
-        return [AccountStore];
-    },
-    getProps() {
-        return {
-            currentAccount: AccountStore.getState().currentAccount,
-            passwordAccount: AccountStore.getState().passwordAccount,
-            contactsList: AccountStore.getState().accountContacts
-        };
+export default connect(
+    Transfer,
+    {
+        listenTo() {
+            return [AccountStore];
+        },
+        getProps() {
+            return {
+                currentAccount: AccountStore.getState().currentAccount,
+                passwordAccount: AccountStore.getState().passwordAccount,
+                contactsList: AccountStore.getState().accountContacts
+            };
+        }
     }
-});
+);
