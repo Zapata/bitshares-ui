@@ -8,7 +8,7 @@ get_latest_release() {
 
 update_master() {
     git checkout master
-    git pull official master --no-edit
+    git pull official $latest_release --no-edit
     if [ $? -ne 0 ]; then
         echo "Please fix conflict and rerun."
         exit 1
