@@ -2,14 +2,14 @@ import React from "react";
 import Immutable from "immutable";
 import Translate from "react-translate-component";
 import accountUtils from "common/account_utils";
-import {ChainStore, FetchChainObjects} from "bitsharesjs/es";
+import {ChainStore, FetchChainObjects} from "bitsharesjs";
 import WorkerApproval from "./WorkerApproval";
 import VotingAccountsList from "./VotingAccountsList";
 import cnames from "classnames";
 import {Tabs, Tab} from "../Utility/Tabs";
 import BindToChainState from "../Utility/BindToChainState";
 import ChainTypes from "../Utility/ChainTypes";
-import {Link} from "react-router/es";
+import {Link} from "react-router-dom";
 import ApplicationApi from "api/ApplicationApi";
 import AccountSelector from "./AccountSelector";
 import Icon from "../Icon/Icon";
@@ -678,25 +678,29 @@ class AccountVoting extends React.Component {
 
         let proxyInput = (
             <AccountSelector
-                hideImage
-                style={{width: "50%", maxWidth: 350}}
+                style={{width: "50%", maxWidth: 250, marginBottom: 10}}
                 account={this.state.current_proxy_input}
                 accountName={this.state.current_proxy_input}
                 onChange={this.onProxyChange.bind(this)}
                 onAccountChanged={this.onProxyAccountFound}
-                typeahead={true}
                 tabIndex={1}
-                placeholder="Proxy not set"
+                placeholder={counterpart.translate("account.votes.set_proxy")}
+                tooltip={counterpart.translate(
+                    !this.state.proxy_account_id
+                        ? "tooltip.proxy_search"
+                        : "tooltip.proxy_remove"
+                )}
+                hideImage
             >
                 <span
                     style={{
                         paddingLeft: 5,
                         position: "relative",
-                        top: -1,
+                        top: 9,
                         display: hasProxy ? "" : "none"
                     }}
                 >
-                    <Icon name="locked" title="icons.locked.action" size="1x" />
+                    <Icon name="locked" size="1x" />
                 </span>
                 <span
                     style={{
@@ -975,9 +979,11 @@ class AccountVoting extends React.Component {
                                                     style={{textAlign: "left"}}
                                                 >
                                                     <Translate content="account.votes.total_budget" />{" "}
-                                                    (<AssetName
+                                                    (
+                                                    <AssetName
                                                         name={preferredUnit}
-                                                    />)
+                                                    />
+                                                    )
                                                 </th>
                                                 <th
                                                     colSpan="2"
@@ -1061,9 +1067,11 @@ class AccountVoting extends React.Component {
                                                         fontSize: "0.8rem"
                                                     }}
                                                 >
-                                                    (<AssetName
+                                                    (
+                                                    <AssetName
                                                         name={preferredUnit}
-                                                    />)
+                                                    />
+                                                    )
                                                 </div>
                                             </th>
                                             {workerTableIndex === 2 ||
@@ -1078,9 +1086,11 @@ class AccountVoting extends React.Component {
                                                             fontSize: "0.8rem"
                                                         }}
                                                     >
-                                                        (<AssetName
+                                                        (
+                                                        <AssetName
                                                             name={preferredUnit}
-                                                        />)
+                                                        />
+                                                        )
                                                     </div>
                                                 </th>
                                             )}

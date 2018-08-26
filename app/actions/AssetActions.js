@@ -2,14 +2,41 @@ import alt from "alt-instance";
 import {Apis} from "bitsharesjs-ws";
 import utils from "common/utils";
 import WalletApi from "api/WalletApi";
-import ApplicationApi from "api/ApplicationApi";
 import WalletDb from "stores/WalletDb";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import big from "bignumber.js";
-
+import {gatewayPrefixes} from "common/gateways";
 let inProgress = {};
 
 class AssetActions {
+    publishFeed({publisher, asset_id, mcr, mssr, settlementPrice, cer}) {
+        let tr = WalletApi.new_transaction();
+        tr.add_type_operation("asset_publish_feed", {
+            publisher,
+            asset_id,
+            feed: {
+                settlement_price: settlementPrice.toObject(),
+                maintenance_collateral_ratio: mcr,
+                maximum_short_squeeze_ratio: mssr,
+                core_exchange_rate: cer.toObject()
+            }
+        });
+
+        return dispatch => {
+            return WalletDb.process_transaction(tr, null, true)
+                .then(() => {
+                    dispatch(true);
+                })
+                .catch(error => {
+                    console.log(
+                        "[AssetActions.js:150] ----- fundPool error ----->",
+                        error
+                    );
+                    dispatch(false);
+                });
+        };
+    }
+
     fundPool(account_id, core, asset, amount) {
         let tr = WalletApi.new_transaction();
         let precision = utils.get_asset_precision(core.get("precision"));
@@ -31,6 +58,58 @@ class AssetActions {
                 .catch(error => {
                     console.log(
                         "[AssetActions.js:150] ----- fundPool error ----->",
+                        error
+                    );
+                    dispatch(false);
+                });
+        };
+    }
+
+    claimPool(asset, amount) {
+        let tr = WalletApi.new_transaction();
+        tr.add_type_operation("asset_claim_pool", {
+            fee: {
+                amount: 0,
+                asset_id: "1.3.0"
+            },
+            issuer: asset.get("issuer"),
+            asset_id: asset.get("id"),
+            amount_to_claim: amount.toObject()
+        });
+        return dispatch => {
+            return WalletDb.process_transaction(tr, null, true)
+                .then(() => {
+                    dispatch(true);
+                })
+                .catch(error => {
+                    console.log(
+                        "[AssetActions.js:150] ----- claimPool error ----->",
+                        error
+                    );
+                    dispatch(false);
+                });
+        };
+    }
+
+    updateOwner(asset, new_issuer_id) {
+        let tr = WalletApi.new_transaction();
+        tr.add_type_operation("asset_update_issuer", {
+            fee: {
+                amount: 0,
+                asset_id: "1.3.0"
+            },
+            issuer: asset.issuer,
+            asset_to_update: asset.id,
+            new_issuer: new_issuer_id
+        });
+        return dispatch => {
+            return WalletDb.process_transaction(tr, null, true)
+                .then(() => {
+                    dispatch(true);
+                })
+                .catch(error => {
+                    console.log(
+                        "[AssetActions.js:150] ----- updateOwner error ----->",
                         error
                     );
                     dispatch(false);
@@ -67,7 +146,6 @@ class AssetActions {
 
     claimPoolFees(account_id, asset, amount) {
         let tr = WalletApi.new_transaction();
-        let precision = utils.get_asset_precision(asset.get("precision"));
 
         tr.add_type_operation("asset_claim_fees", {
             fee: {
@@ -77,12 +155,12 @@ class AssetActions {
             issuer: account_id,
             amount_to_claim: {
                 asset_id: asset.get("id"),
-                amount: amount * precision
+                amount: amount.getAmount()
             }
         });
         return dispatch => {
             return WalletDb.process_transaction(tr, null, true)
-                .then(result => {
+                .then(() => {
                     dispatch(true);
                 })
                 .catch(error => {
@@ -356,47 +434,7 @@ class AssetActions {
             });
     }
 
-    issueAsset(to_account, from_account, asset_id, amount, memo) {
-        ApplicationApi.issue_asset(
-            to_account,
-            from_account,
-            asset_id,
-            amount,
-            memo
-        );
-    }
-
-    // issueAsset(account_id, issueObject) {
-    //     console.log("account_id: ", account_id, issueObject);
-    //     // Create asset action here...
-    //     var tr = WalletApi.new_transaction();
-    //     tr.add_type_operation("asset_issue", {
-    //         fee: {
-    //             amount: 0,
-    //             asset_id: 0
-    //         },
-    //         "issuer": account_id,
-    //         "asset_to_issue": {
-    //             "amount": issueObject.amount,
-    //             "asset_id": issueObject.asset_id
-    //         },
-    //         "issue_to_account": issueObject.to_id,
-
-    //         "extensions": [
-
-    //         ]
-    //     });
-    //     return WalletDb.process_transaction(tr, null, true).then(result => {
-    //         console.log("asset issue result:", result);
-    //         // this.dispatch(account_id);
-    //         return true;
-    //     }).catch(error => {
-    //         console.log("[AssetActions.js:150] ----- createAsset error ----->", error);
-    //         return false;
-    //     });
-    // }
-
-    getAssetList(start, count, gateAssets = false) {
+    getAssetList(start, count, includeGateways = false) {
         let id = start + "_" + count;
         return dispatch => {
             if (!inProgress[id]) {
@@ -454,15 +492,8 @@ class AssetActions {
                     });
 
                 // Fetch next 10 assets for each gateAsset on request
-                if (!!gateAssets) {
-                    let gatewayPrefies = [
-                        "BRIDGE",
-                        "GDEX",
-                        "RUDEX",
-                        "OPEN",
-                        "WIN"
-                    ];
-                    gatewayPrefies.forEach(a => {
+                if (includeGateways) {
+                    gatewayPrefixes.forEach(a => {
                         this.getAssetList(a + "." + start, 10);
                     });
                 }
@@ -512,17 +543,21 @@ class AssetActions {
             payer,
             extensions: []
         });
-        return WalletDb.process_transaction(tr, null, true)
-            .then(result => {
-                return true;
-            })
-            .catch(error => {
-                console.log(
-                    "[AssetActions.js:150] ----- reserveAsset error ----->",
-                    error
-                );
-                return false;
-            });
+        return dispatch => {
+            return WalletDb.process_transaction(tr, null, true)
+                .then(() => {
+                    dispatch(true);
+                    return true;
+                })
+                .catch(error => {
+                    dispatch(false);
+                    console.log(
+                        "[AssetActions.js:150] ----- reserveAsset error ----->",
+                        error
+                    );
+                    return false;
+                });
+        };
     }
 }
 

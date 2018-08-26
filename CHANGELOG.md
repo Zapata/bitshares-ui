@@ -1,4 +1,280 @@
 ---------------------------------------------------------------------
+Release 2.0.180815
+---------------------------------------------------------------------
+New features
+--------
+- #1767: Add full account history csv export
+- #1738: Use block headers to display block times
+- #1493: Add missing fee ops to Fees page
+- #1751: Refactor the dashboard markets table, separate markets by quote asset
+
+Bug fixes and improvements
+--------
+- Update one API url
+- Fix #1795: Handle disabled gateways iussue in withdrawmodal new
+- Fix #1788: Market Picker issue
+- #1751: Add missing translation key and update locale files
+- #1699: Link to in-wallet help instead of docs.bitshares.org
+- Fix #1781: Update openledger contact info and fix deposit modal help
+- Fix #1770: Make sure node information defaults to sensible values
+- Fix #1758 - Tooltip on Margin Modal
+- Fix global settlement price displayed in Asset view
+- Replace misplaced tx label with #[number] in Transaction.jsx
+
+---------------------------------------------------------------------
+Release 2.0.180815-rc1
+---------------------------------------------------------------------
+New features
+--------
+- #1767: Add full account history csv export
+- #1738: Use block headers to display block times
+- #1493: Add missing fee ops to Fees page
+- #1751: Refactor the dashboard markets table, separate markets by quote asset
+
+Bug fixes and improvements
+--------
+- #1751: Add missing translation key and update locale files
+- #1699: Link to in-wallet help instead of docs.bitshares.org
+- Fix #1781: Update openledger contact info and fix deposit modal help
+- Fix #1770: Make sure node information defaults to sensible values
+- Fix #1758 - Tooltip on Margin Modal
+- Fix global settlement price displayed in Asset view
+- Replace misplaced tx label with #[number] in Transaction.jsx
+
+---------------------------------------------------------------------
+Release 2.0.180814
+---------------------------------------------------------------------
+Bug fixes and improvements
+--------
+- Fix #1778: Sum call orders properly
+- Fix #1779: Display debt and collateral values properly in Asset view
+
+---------------------------------------------------------------------
+Release 2.0.180808
+---------------------------------------------------------------------
+New features
+--------
+- #1740: Add pagination to several tables
+- #1576: Add target collateral ratio to orderbook calculations
+- #1131: Add feed price publishing to Asset page
+- #1629: Move burn asset to portfolio, fee claiming to Asset page
+- #1596: Add new asset_update_issuer operation
+- #1598: Add fee pool claim and cleanup Asset page
+- #1550: Make preferred units depend on the network (main/testnet)
+- #1521, #1672, #1462: Better Node Management
+- #1575: Adding UI for Target CR on Modal
+- #1701: Implement an advanced ping strategy
+
+Bug fixes and improvements
+--------
+- #1521: Add more nodes and improve latency check
+- Fix #1760 and AccountStoreBug (#1765)
+- Fix #1752: Account with no balances crashes the GUI
+- Fix #1748: Disable release notifications in RC builds
+- Fix #1745: are_equal_shallow bug
+- Fix #1737: Make sure groupedOrder selection is used when switching chart timeframes
+- #1521: More node updates
+- Fix a bug causing infinite loading in Assets search page
+- Fix #1744: Make sure BindToChainState compares null values correctly
+- #1521: Update API node details
+- #1131: Use ratio instead of percent for mcr and mssr
+- #1596: Move Asset fee claiming to Asset page actions tab
+- #1706: Update scam accounts list
+- Fix #1723: Clean up proxy input field, add tooltips
+- #1712: Add OPEN.EOSDAC asset to default lists
+- #1712: Improve find market search results
+- Fix #1727: Target CR Delimiter
+- Fix #1628: Add checker for inputs on withdrawal
+- Fix #1688 - Add Trading link to margin table
+- Fix #1667 - Dashboard Column Reordering
+- Fix #1704: Theme Issues on Asset Explorer
+- #1575: Fixes for Target CR
+- #1672: Remove API nodes without support for orders API
+- Update russian translations (#1709)
+
+---------------------------------------------------------------------
+Release 2.0.180808-rc2
+---------------------------------------------------------------------
+Bug fixes and improvements
+--------
+- Fix #1752: Account with no balances crashes the GUI
+- Fix #1748: Disable release notifications in RC builds
+- Fix #1745: are_equal_shallow bug
+- Fix #1737: Make sure groupedOrder selection is used when switching chart timeframes
+
+---------------------------------------------------------------------
+Release 2.0.180808-rc1
+---------------------------------------------------------------------
+New features
+--------
+- #1740: Add pagination to several tables
+- #1576: Add target collateral ratio to orderbook calculations
+- #1131: Add feed price publishing to Asset page
+- #1629: Move burn asset to portfolio, fee claiming to Asset page
+- #1596: Add new asset_update_issuer operation
+- #1598: Add fee pool claim and cleanup Asset page
+- #1550: Make preferred units depend on the network (main/testnet)
+- #1521, #1672, #1462: Better Node Management
+- #1575: Adding UI for Target CR on Modal
+- #1701: Implement an advanced ping strategy
+
+Bug fixes and improvements
+--------
+- #1521: More node updates
+- Fix a bug causing infinite loading in Assets search page
+- Fix #1744: Make sure BindToChainState compares null values correctly
+- #1521: Update API node details
+- #1131: Use ratio instead of percent for mcr and mssr
+- #1596: Move Asset fee claiming to Asset page actions tab
+- #1706: Update scam accounts list
+- Fix #1723: Clean up proxy input field, add tooltips
+- #1712: Add OPEN.EOSDAC asset to default lists
+- #1712: Improve find market search results
+- Fix #1727: Target CR Delimiter
+- Fix #1628: Add checker for inputs on withdrawal
+- Fix #1688 - Add Trading link to margin table
+- Fix #1667 - Dashboard Column Reordering
+- Fix #1704: Theme Issues on Asset Explorer
+- #1575: Fixes for Target CR
+- #1672: Remove API nodes without support for orders API
+- Update russian translations (#1709)
+
+---------------------------------------------------------------------
+Release 2.0.180720
+---------------------------------------------------------------------
+New features
+--------
+- #1613: Add feature branding (#1627)
+- #1407: Add reconnect strategy (#1633)
+
+Bug fixes and improvements
+--------
+- Fix back/forward buttons and navigation
+- #1643: Set marketStatsQueueLength to 500
+- Fix #1682: Missing isContact in HeaderDropdown
+- Fix #1684 and some excessive Header rerendering
+- Various performance tweaks to render cycles
+- Fix #1671: Restore the create-worker route
+- #1510: Adding API nodes for BitsharesDEX
+- Fix #1610: Add react-scroll on account create form
+- Fix #1577 - BSIP-0030 Implementation for margin position updates
+- #1530: Fix error propagation for asset issuance
+- #1458 Update accounts dropdown label & icon (#1603)
+- List XRP and XMR Openledger assets (#1631)
+- #1106: Add a tooltip message explaining why group selection is not available
+- Fix #1529: Expiration Time tooltip in open orders (#1616)
+- Fix #1618: Vertical orderbook missing translations
+- Add missing translations (no orders, no bids) (#1617)
+- Fix #1609: React hot reload error for antd components
+
+---------------------------------------------------------------------
+Release 2.0.180720-rc2
+---------------------------------------------------------------------
+Bug fixes and improvements
+--------
+- Fix back/forward buttons and navigation
+- #1643: Set marketStatsQueueLength to 500
+- Fix #1682: Missing isContact in HeaderDropdown
+- Fix #1684 and some excessive Header rerendering
+
+---------------------------------------------------------------------
+Release 2.0.180720-rc1
+---------------------------------------------------------------------
+New features
+--------
+- #1613: Add feature branding (#1627)
+- #1407: Add reconnect strategy (#1633)
+
+Bug fixes and improvements
+--------
+- Various performance tweaks to render cycles
+- Fix #1671: Restore the create-worker route
+- #1510: Adding API nodes for BitsharesDEX
+- Fix #1610: Add react-scroll on account create form
+- Fix #1577 - BSIP-0030 Implementation for margin position updates
+- #1530: Fix error propagation for asset issuance
+- #1458 Update accounts dropdown label & icon (#1603)
+- List XRP and XMR Openledger assets (#1631)
+- #1106: Add a tooltip message explaining why group selection is not available
+- Fix #1529: Expiration Time tooltip in open orders (#1616)
+- Fix #1618: Vertical orderbook missing translations
+- Add missing translations (no orders, no bids) (#1617)
+- Fix #1609: React hot reload error for antd components
+
+---------------------------------------------------------------------
+Release 2.0.180629
+---------------------------------------------------------------------
+New features
+--------
+- #1484 TradingView restyle
+- #1547: Support New OPs 47 + 48
+- #1591: Add code splitting, dynamic imports
+- #1557 - Use order ID consistently
+- #1292 - Autoscroll to transaction number
+- #1496: Locking CR / Debt values for ratio selection
+- List XRP and XMR Openledger assets (#1631)
+- Add RuDEX: BTC, ETH, DGB, EOS (#1635)
+
+Bug fixes and improvements
+--------
+- #1620: Fix undefined order property (#1624)
+- Updating ru locale (#1602)
+- #1620: Order ID is not always populated
+- #1605: White screen after order creation
+- #1611: Accessing withdraw modal with no account available
+- #1612: Add contact with no account selected
+- #1538: Disable different precision error message when not creating PM
+- #1566: UI Update for BSIP-0037
+- Update TradingView lib
+- Fix #1556: Remove forced decimalOffset on Proposed Transaction
+- Fix #1532 - Generated password does not show completely
+- Fix an issue in PasswordConfirm making input imposible
+- #1584: Move to react router v4
+- #1560: Enable develop branch with automatic builds
+- #1569: Use unique memo keys when creating new accounts
+- Fix #1568: AssetName crash on non-existing asset
+- #1580 Integrate bitshares-ui-style-guide
+- #1525 - Clear Voting Proxy
+- #1555 - Market Picker fixes for improvements
+
+---------------------------------------------------------------------
+Release 2.0.180629-rc2
+---------------------------------------------------------------------
+Bug fixes and improvements
+--------
+- #1605: White screen after order creation
+- #1611: Accessing withdraw modal with no account available
+- #1612: Add contact with no account selected
+
+---------------------------------------------------------------------
+Release 2.0.180629-rc1
+---------------------------------------------------------------------
+New features
+--------
+- #1484 TradingView restyle
+- #1547: Support New OPs 47 + 48
+- #1591: Add code splitting, dynamic imports
+- #1557 - Use order ID consistently
+- #1292 - Autoscroll to transaction number
+- #1496: Locking CR / Debt values for ratio selection
+
+Bug fixes and improvements
+--------
+- #1538: Disable different precision error message when not creating PM
+- #1566: UI Update for BSIP-0037
+- Update TradingView lib
+- Fix #1556: Remove forced decimalOffset on Proposed Transaction
+- Fix #1532 - Generated password does not show completely
+- Fix an issue in PasswordConfirm making input imposible
+- #1584: Move to react router v4
+- #1560: Enable develop branch with automatic builds
+- #1569: Use unique memo keys when creating new accounts
+- Fix #1568: AssetName crash on non-existing asset
+- #1580 Integrate bitshares-ui-style-guide
+- #1525 - Clear Voting Proxy
+- #1555 - Market Picker fixes for improvements
+
+---------------------------------------------------------------------
 Release 2.0.180525
 ---------------------------------------------------------------------
 New features

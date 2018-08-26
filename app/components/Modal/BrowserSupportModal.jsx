@@ -3,6 +3,7 @@ import ZfApi from "react-foundation-apps/src/utils/foundation-api";
 import Trigger from "react-foundation-apps/src/trigger";
 import Translate from "react-translate-component";
 import BaseModal from "./BaseModal";
+import {getWalletName} from "branding";
 
 export default class BrowserSupportModal extends React.Component {
     show() {
@@ -21,10 +22,11 @@ export default class BrowserSupportModal extends React.Component {
         return (
             <BaseModal id="browser_modal" overlay={true} ref="browser_modal">
                 <div className="grid-block vertical no-overflow">
-                    <Translate component="h3" content="init_error.browser" />
+                    <Translate component="h3" content="app_init.browser" />
                     <Translate
                         component="p"
-                        content="init_error.browser_text"
+                        content="app_init.browser_text"
+                        wallet_name={getWalletName()}
                     />
                     <br />
 
@@ -38,7 +40,7 @@ export default class BrowserSupportModal extends React.Component {
                     >
                         <Trigger close="browser_modal">
                             <div className="button">
-                                <Translate content="init_error.understand" />
+                                <Translate content="app_init.understand" />
                             </div>
                         </Trigger>
                     </div>

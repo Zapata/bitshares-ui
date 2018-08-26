@@ -10,12 +10,12 @@ import BindToChainState from "../Utility/BindToChainState";
 import SettingsActions from "actions/SettingsActions";
 import AccountActions from "actions/AccountActions";
 import Icon from "../Icon/Icon";
-import {ChainStore} from "bitsharesjs/es";
+import {ChainStore} from "bitsharesjs";
 import TotalBalanceValue from "../Utility/TotalBalanceValue";
 import AccountStore from "stores/AccountStore";
 import counterpart from "counterpart";
 import WalletDb from "stores/WalletDb";
-import PropTypes from "prop-types";
+import {withRouter} from "react-router-dom";
 
 const starSort = function(a, b, inverse, starredAccounts) {
     let aName = a.get("name");
@@ -39,10 +39,6 @@ const starSort = function(a, b, inverse, starredAccounts) {
 };
 
 class DashboardList extends React.Component {
-    static contextTypes = {
-        router: PropTypes.object.isRequired
-    };
-
     static propTypes = {
         accounts: ChainTypes.ChainAccountsList.isRequired,
         ignoredAccounts: ChainTypes.ChainAccountsList
@@ -55,11 +51,6 @@ class DashboardList extends React.Component {
 
     constructor(props) {
         super();
-        let inputValue = props.viewSettings.get("marketLookupInput");
-        let symbols = inputValue ? inputValue.split(":") : [null];
-        let quote = symbols[0];
-        let base = symbols.length === 2 ? symbols[1] : null;
-
         this.state = {
             inverseSort: props.viewSettings.get("dashboardSortInverse", true),
             sortBy: props.viewSettings.get("dashboardSort", "star"),
@@ -94,14 +85,14 @@ class DashboardList extends React.Component {
     }
 
     _goAccount(name, tab) {
-        this.context.router.push(`/account/${name}`);
+        this.props.history.push(`/account/${name}`);
         SettingsActions.changeViewSetting({
             overviewTab: tab
         });
     }
 
     _createAccount() {
-        this.context.router.push("/create-account/wallet");
+        this.props.history.push("/create-account/wallet");
     }
 
     _onFilter(e) {
@@ -548,7 +539,8 @@ class DashboardList extends React.Component {
                                 <td colSpan="8">
                                     {counterpart.translate(
                                         "account.hidden_accounts_row"
-                                    )}:
+                                    )}
+                                    :
                                 </td>
                             </tr>
                         ) : null}
@@ -566,16 +558,20 @@ class AccountsListWrapper extends React.Component {
         return <DashboardList {...this.props} />;
     }
 }
+AccountsListWrapper = withRouter(AccountsListWrapper);
 
-export default connect(AccountsListWrapper, {
-    listenTo() {
-        return [SettingsStore, WalletUnlockStore, AccountStore];
-    },
-    getProps() {
-        return {
-            locked: WalletUnlockStore.getState().locked,
-            starredAccounts: AccountStore.getState().starredAccounts,
-            viewSettings: SettingsStore.getState().viewSettings
-        };
+export default connect(
+    AccountsListWrapper,
+    {
+        listenTo() {
+            return [SettingsStore, WalletUnlockStore, AccountStore];
+        },
+        getProps() {
+            return {
+                locked: WalletUnlockStore.getState().locked,
+                starredAccounts: AccountStore.getState().starredAccounts,
+                viewSettings: SettingsStore.getState().viewSettings
+            };
+        }
     }
-});
+);

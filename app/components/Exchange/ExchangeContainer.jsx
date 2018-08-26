@@ -1,7 +1,6 @@
 import React from "react";
 import MarketsStore from "stores/MarketsStore";
 import AccountStore from "stores/AccountStore";
-import AssetStore from "stores/AssetStore";
 import SettingsStore from "stores/SettingsStore";
 import GatewayStore from "stores/GatewayStore";
 import IntlStore from "stores/IntlStore";
@@ -9,7 +8,7 @@ import WalletUnlockStore from "stores/WalletUnlockStore";
 import AltContainer from "alt-container";
 import Exchange from "./Exchange";
 import ChainTypes from "../Utility/ChainTypes";
-import {EmitterInstance} from "bitsharesjs/es";
+import {EmitterInstance} from "bitsharesjs";
 import BindToChainState from "../Utility/BindToChainState";
 import MarketsActions from "actions/MarketsActions";
 import {DataFeed} from "components/Exchange/tradingViewClasses";
@@ -17,7 +16,7 @@ import Page404 from "../Page404/Page404";
 
 class ExchangeContainer extends React.Component {
     render() {
-        let symbols = this.props.params.marketID.toUpperCase().split("_");
+        let symbols = this.props.match.params.marketID.toUpperCase().split("_");
         if (symbols[0] === symbols[1]) {
             return <Page404 subtitle="market_not_found_subtitle" />;
         }
@@ -52,12 +51,6 @@ class ExchangeContainer extends React.Component {
                     },
                     totals: () => {
                         return MarketsStore.getState().totals;
-                    },
-                    priceData: () => {
-                        return MarketsStore.getState().priceData;
-                    },
-                    volumeData: () => {
-                        return MarketsStore.getState().volumeData;
                     },
                     activeMarketHistory: () => {
                         return MarketsStore.getState().activeMarketHistory;
@@ -110,23 +103,26 @@ class ExchangeContainer extends React.Component {
                     bridgeCoins: () => {
                         return GatewayStore.getState().bridgeCoins;
                     },
-                    searchAssets: () => {
-                        return AssetStore.getState().assets;
-                    },
-                    assetsLoading: () => {
-                        return AssetStore.getState().assetsLoading;
-                    },
                     miniDepthChart: () => {
                         return SettingsStore.getState().viewSettings.get(
                             "miniDepthChart",
                             true
                         );
                     },
-                    dataFeed: () => new DataFeed()
+
+                    dataFeed: () => new DataFeed(),
+
+                    trackedGroupsConfig: () => {
+                        return MarketsStore.getState().trackedGroupsConfig;
+                    },
+                    currentGroupOrderLimit: () => {
+                        return MarketsStore.getState().currentGroupLimit;
+                    }
                 }}
             >
                 <ExchangeSubscriber
-                    router={this.props.router}
+                    history={this.props.history}
+                    location={this.props.location}
                     quoteAsset={symbols[0]}
                     baseAsset={symbols[1]}
                 />
@@ -155,7 +151,7 @@ class ExchangeSubscriber extends React.Component {
         coreAsset: "1.3.0"
     };
 
-    constructor() {
+    constructor(props) {
         super();
         this.state = {sub: null};
 
@@ -226,7 +222,7 @@ class ExchangeSubscriber extends React.Component {
             nextProps.baseAsset &&
             nextProps.baseAsset.getIn(["bitasset", "is_prediction_market"])
         ) {
-            this.props.router.push(
+            this.props.history.push(
                 `/market/${nextProps.baseAsset.get(
                     "symbol"
                 )}_${nextProps.quoteAsset.get("symbol")}`
@@ -273,16 +269,20 @@ class ExchangeSubscriber extends React.Component {
         }
     }
 
-    _subToMarket(props, newBucketSize) {
-        let {quoteAsset, baseAsset, bucketSize} = props;
+    _subToMarket(props, newBucketSize, newGroupLimit) {
+        let {quoteAsset, baseAsset, bucketSize, currentGroupOrderLimit} = props;
         if (newBucketSize) {
             bucketSize = newBucketSize;
+        }
+        if (newGroupLimit) {
+            currentGroupOrderLimit = newGroupLimit;
         }
         if (quoteAsset.get("id") && baseAsset.get("id")) {
             MarketsActions.subscribeMarket.defer(
                 baseAsset,
                 quoteAsset,
-                bucketSize
+                bucketSize,
+                currentGroupOrderLimit
             );
             this.setState({
                 sub: `${quoteAsset.get("id")}_${baseAsset.get("id")}`
