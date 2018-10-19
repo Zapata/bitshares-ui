@@ -585,7 +585,14 @@ class WithdrawModalNew extends React.Component {
     }
 
     onQuantityChanged(e) {
-        this.setState({quantity: e.target.value});
+        var input = null;
+        if (parseFloat(e.target.value) == e.target.value) {
+            input = e.target.value.trim();
+        } else {
+            input =
+                parseFloat(e.target.value.trim().replace(/[^\d.-]/g, "")) || 0;
+        }
+        this.setState({quantity: input});
     }
 
     onEstimateChanged(e) {
@@ -699,8 +706,11 @@ class WithdrawModalNew extends React.Component {
             feeAmount
         } = this.state;
 
-        let assetName = selectedAsset.toLowerCase();
         let gatewayStatus = this.state.gatewayStatus[selectedGateway];
+        let assetName = !!gatewayStatus.assetWithdrawlAlias
+            ? gatewayStatus.assetWithdrawlAlias[selectedAsset.toLowerCase()] ||
+              selectedAsset.toLowerCase()
+            : selectedAsset.toLowerCase();
 
         const intermediateAccountNameOrId = getIntermediateAccount(
             withdrawalCurrency.symbol,
@@ -991,7 +1001,7 @@ class WithdrawModalNew extends React.Component {
 
                     {/*QUANTITY*/}
                     {assetAndGateway || isBTS ? (
-                        <div>
+                        <div style={{marginBottom: "1em"}}>
                             {preferredCurrency ? (
                                 <div
                                     style={{
@@ -1043,6 +1053,7 @@ class WithdrawModalNew extends React.Component {
                                 onChange={this.onQuantityChanged.bind(this)}
                                 onFocus={onFocus}
                                 onBlur={onBlur}
+                                allowNaN={true}
                                 placeholder={counterpart.translate(
                                     "gateway.limit_withdraw_asset",
                                     {
