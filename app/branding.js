@@ -141,7 +141,21 @@ export function getMyMarketsQuotes() {
             "RUDEX.STEEM",
             "RUDEX.TT"
         ],
+        sparkTokens: ["ZEPH", "SPARKDEX.ETH", "SPARKDEX.BTC"],
         winTokens: ["WIN.ETC", "WIN.ETH", "WIN.HSR"],
+        xbtsxTokens: [
+            "XBTSX.STH",
+            "XBTSX.POST",
+            "XBTSX.DOGE",
+            "XBTSX.BTC",
+            "XBTSX.LTC",
+            "XBTSX.DASH",
+            "XBTSX.KEC",
+            "XBTSX.BCH",
+            "XBTSX.BTG",
+            "XBTSX.XSPEC",
+            "XBTSX.NVC"
+        ],
         otherTokens: [
             "BKT",
             "BLOCKPAY",
@@ -160,8 +174,7 @@ export function getMyMarketsQuotes() {
             "OCT",
             "SMOKE",
             "STEALTH",
-            "YOYOW",
-            "ZEPH"
+            "YOYOW"
         ]
     };
 
@@ -250,8 +263,10 @@ export function getFeaturedMarkets(quotes = []) {
         ["BTS", "RUDEX.SCR"],
         ["BTS", "RUDEX.ETH"],
         ["BTS", "RUDEX.DGB"],
+        ["BTS", "XBTSX.STH"],
         ["BTS", "ZEPH"],
-        ["BTS", "HERTZ"]
+        ["BTS", "HERTZ"][("BTS", "SPARKDEX.BTC")],
+        ["BTS", "SPARKDEX.ETH"]
     ].filter(a => {
         if (!quotes.length) return true;
         return quotes.indexOf(a[0]) !== -1;
@@ -264,7 +279,17 @@ export function getFeaturedMarkets(quotes = []) {
  * @returns {[string,string,string,string,string,string,string]}
  */
 export function getAssetNamespaces() {
-    return ["TRADE.", "OPEN.", "METAEX.", "BRIDGE.", "RUDEX.", "GDEX.", "WIN."];
+    return [
+        "TRADE.",
+        "OPEN.",
+        "METAEX.",
+        "BRIDGE.",
+        "RUDEX.",
+        "GDEX.",
+        "WIN.",
+        "XBTSX.",
+        "SPARKDEX."
+    ];
 }
 
 /**
@@ -282,7 +307,11 @@ export function getAssetHideNamespaces() {
  * @returns {boolean}
  */
 export function allowedGateway(gateway) {
-    return ["OPEN", "RUDEX", "WIN", "BRIDGE", "GDEX"].indexOf(gateway) >= 0;
+    return (
+        ["OPEN", "RUDEX", "WIN", "BRIDGE", "GDEX", "XBTSX", "SPARKDEX"].indexOf(
+            gateway
+        ) >= 0
+    );
 }
 
 export function getSupportedLanguages() {

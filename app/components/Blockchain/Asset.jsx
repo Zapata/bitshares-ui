@@ -610,7 +610,7 @@ class Asset extends React.Component {
                         content="explorer.asset.feed_producer_text"
                     />
                     <AssetPublishFeed
-                        base={asset.id}
+                        asset={asset.id}
                         account={this.props.currentAccount}
                         currentOwner={asset.issuer}
                     />

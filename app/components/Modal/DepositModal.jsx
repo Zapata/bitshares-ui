@@ -8,8 +8,7 @@ import BlockTradesDepositAddressCache from "common/BlockTradesDepositAddressCach
 import CopyButton from "../Utility/CopyButton";
 import Icon from "../Icon/Icon";
 import LoadingIndicator from "../LoadingIndicator";
-import {DecimalChecker} from "../Exchange/ExchangeInput";
-import QRCode from "qrcode.react";
+import {DecimalChecker} from "../Utility/DecimalChecker";
 import DepositWithdrawAssetSelector from "../DepositWithdraw/DepositWithdrawAssetSelector.js";
 import {
     gatewaySelector,
@@ -19,6 +18,7 @@ import {
 } from "lib/common/assetGatewayMixin";
 import {availableGateways} from "common/gateways";
 import {getGatewayStatusByAsset} from "common/gatewayUtils";
+import CryptoLinkFormatter from "../Utility/CryptoLinkFormatter";
 
 class DepositModalContent extends DecimalChecker {
     constructor() {
@@ -109,7 +109,8 @@ class DepositModalContent extends DecimalChecker {
                 selectedAsset.toLowerCase(),
             outputAddress: account,
             url: url,
-            stateCallback: this.addDepositAddress
+            stateCallback: this.addDepositAddress,
+            selectedGateway: selectedGateway
         };
     }
 
@@ -241,23 +242,27 @@ class DepositModalContent extends DecimalChecker {
             depositAddress !== "unknown" &&
             !depositAddress.error;
 
-        let minDeposit =
-            !backingAsset || !backingAsset.gateFee
-                ? 0
-                : backingAsset.gateFee
-                    ? backingAsset.gateFee * 2
-                    : utils.format_number(
-                          backingAsset.minAmount /
-                              utils.get_asset_precision(backingAsset.precision),
-                          backingAsset.precision,
-                          false
-                      );
+        let minDeposit = 0;
+        if (!!backingAsset) {
+            if (!!backingAsset.minAmount && !!backingAsset.precision) {
+                minDeposit = utils.format_number(
+                    backingAsset.minAmount /
+                        utils.get_asset_precision(backingAsset.precision),
+                    backingAsset.precision,
+                    false
+                );
+            } else if (!!backingAsset.gateFee) {
+                minDeposit = backingAsset.gateFee * 2;
+            }
+        }
         //let maxDeposit = backingAsset.maxAmount ? backingAsset.maxAmount : null;
 
         const QR = isAddressValid ? (
-            <div className="QR">
-                <QRCode size={140} value={depositAddress.address} />
-            </div>
+            <CryptoLinkFormatter
+                size={140}
+                address={depositAddress.address}
+                asset={selectedAsset}
+            />
         ) : (
             <div>
                 <Icon
@@ -356,7 +361,7 @@ class DepositModalContent extends DecimalChecker {
                                         className={"copyIcon"}
                                     />
                                 </div>
-                                <div>
+                                <div style={{wordBreak: "break-word"}}>
                                     <Translate
                                         component="div"
                                         style={{
@@ -374,7 +379,10 @@ class DepositModalContent extends DecimalChecker {
                                     />
                                     <div
                                         className="modal__highlight"
-                                        style={{fontSize: "0.9rem"}}
+                                        style={{
+                                            fontSize: "0.9rem",
+                                            wordBreak: "break-all"
+                                        }}
                                     >
                                         {depositAddress.address}
                                     </div>
@@ -399,7 +407,10 @@ class DepositModalContent extends DecimalChecker {
                                             unsafe
                                             content="gateway.purchase_notice_memo"
                                         />
-                                        <div className="modal__highlight">
+                                        <div
+                                            className="modal__highlight"
+                                            style={{wordBreak: "break-all"}}
+                                        >
                                             {depositAddress.memo}
                                         </div>
                                     </div>
